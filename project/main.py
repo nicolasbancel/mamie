@@ -18,10 +18,10 @@ def all_steps(picture_name):
     ret, thresh = build_threshold(
         img_grey, constant.THRESH_MIN, constant.THESH_MAX, cv2.THRESH_BINARY_INV
     )
-    kernel = cv2.getStructuringElement(cv.MORPH_CROSS, (10, 10))
+    kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (10, 10))
     erosion_two_iteration = cv2.erode(thresh, kernel, iterations=2)
     contours, _ = find_contours(source=erosion_two_iteration)
-    original_with_main_contours, PictureContours = draw_main_contours(
+    original_with_main_contours, PictureContours, key = draw_main_contours(
         original_with_border,
         contours,
         num_contours=6,
@@ -31,13 +31,17 @@ def all_steps(picture_name):
         show_image=True,
     )
 
+    return key
+
 
 def iterate(dir):
-    for file in os.listdir(mosaic_dir):
+    for file in os.listdir(dir):
         filename = os.fsdecode(file)
         if filename.endswith(".jpg") or filename.endswith(".png"):
             print(f"\n Extracting contours of file : {filename} \n")
-            all_steps(filename)
+            key = all_steps(filename)
+            if key == ord("q"):
+                break
         else:
             continue
 
