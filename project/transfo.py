@@ -7,8 +7,11 @@ import constant
 
 
 def load_original(file_name):
-    mosaic_dir = os.path.join(Path.cwd().parent, "data/mosaic/")
-    first_file = os.path.join(mosaic_dir, file_name)
+    # mosaic_dir = os.path.join(Path.cwd().parent, "data/mosaic/")
+    first_file = os.path.join(constant.MOSAIC_DIR, file_name)
+    print(first_file)
+    print(f"The mosaic directory is : {constant.MOSAIC_DIR}")
+    # print(f"The other mosaic directory is : {constant.MOSAIC_DIR_OTHER}")
     original = cv2.imread(first_file)
     return original
 
@@ -17,7 +20,7 @@ def whiten_edges(
     source,
     thickness_vertical=15,
     thickness_horizontal=25,
-    color=(0, 255, 0),
+    color=(255, 255, 255),  # color=(0, 255, 0) for GREEN
     show_image=False,
 ):
     source_with_rectangles = source.copy()
@@ -72,9 +75,14 @@ def add_borders(source, color=(255, 255, 255), show_image=False):
     return original_with_border
 
 
-def grey_original(source):
+def grey_original(source, show_image=False):
     img_grey = source.copy()
     img_grey = cv2.cvtColor(img_grey, cv2.COLOR_BGR2GRAY)
+    if show_image:
+        cv2.imshow("Grey image", img_grey)
+        cv2.waitKey()
+        cv2.destroyAllWindows()
+        cv2.waitKey(1)
     return img_grey
 
 
@@ -115,8 +123,12 @@ def multiple_transformations_tresholding(
     plt.show()
 
 
-def build_threshold(img_grey, THRESH_MIN, THESH_MAX, method=cv2.THRESH_BINARY_INV):
-    ret, thresh = cv2.threshold(img_grey, THRESH_MIN, THESH_MAX, method)
+def build_threshold(
+    source, THRESH_MIN, THESH_MAX, method=cv2.THRESH_BINARY_INV, show_image=False
+):
+    ret, thresh = cv2.threshold(source, THRESH_MIN, THESH_MAX, method)
+    if show_image:
+        show("After thresholding", thresh)
     return ret, thresh
 
 
