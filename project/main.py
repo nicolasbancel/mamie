@@ -1,5 +1,6 @@
 from transfo import *
 from contour import *
+import argparse
 
 
 def all_steps(picture_name):
@@ -47,4 +48,19 @@ def iterate(dir):
 
 
 if __name__ == "__main__":
-    iterate(constant.MOSAIC_DIR)
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument(
+        "-i", "--image", required=False, help="Name of image - located in mosaic dir"
+    )
+    args = vars(ap.parse_args())
+
+    if len(args) == 1:
+        # Enables : python3 main.py -i "mamie0001.jpg" to work and display only 1 image
+        all_steps(args["image"])
+    else:
+        iterate(constant.MOSAIC_DIR)
+    # print(args)
+    # print(len(args))
+    # print(ap.parse_args())
+    # iterate(constant.MOSAIC_DIR)

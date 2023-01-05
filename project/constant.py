@@ -19,4 +19,8 @@ morph_operator = morph_op_dic[0]
 morph_elem = morph_op_dic[0]
 
 
-MOSAIC_DIR = os.path.join(Path.cwd().parent, "data/mosaic/")
+MOSAIC_DIR = "/Users/nicolasbancel/git/perso/mamie/data/mosaic/"
+# MOSAIC_DIR = os.path.join(Path.cwd().parent, "data/mosaic/")
+# print(f"The mosaic directory is : {MOSAIC_DIR}")
+# MOSAIC_DIR_OTHER = os.path.join(Path(os.path.abspath(os.curdir)).parent, "data/mosaic/")
+# print(f"The other mosaic directory is : {MOSAIC_DIR_OTHER}")
