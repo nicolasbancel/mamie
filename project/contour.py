@@ -67,6 +67,6 @@ def draw_main_contours(
     if show_image:
         cv2.waitKey()
         cv2.destroyAllWindows()
-        cv2.waitKey(1)
+        key = cv2.waitKey(1)
 
-    return original_with_main_contours, PictureContours
+    return original_with_main_contours, PictureContours, key
