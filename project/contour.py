@@ -1,10 +1,8 @@
 import cv2
 
 
-def find_contours(source):
-    contours, hierarchy = cv2.findContours(
-        source.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
-    )
+def find_contours(source, retrieval_mode=cv2.RETR_EXTERNAL):
+    contours, hierarchy = cv2.findContours(source.copy(), retrieval_mode, cv2.CHAIN_APPROX_NONE)
     return contours, hierarchy
 
 
@@ -56,9 +54,7 @@ def draw_main_contours(
 
     original_with_main_contours = original.copy()
 
-    cv2.drawContours(
-        original_with_main_contours, PictureContours, -1, contours_color, contour_size
-    )
+    cv2.drawContours(original_with_main_contours, PictureContours, -1, contours_color, contour_size)
 
     cv2.imshow("Output - Biggest contours", original_with_main_contours)
     print("Number of contours identified: ", len(contours))

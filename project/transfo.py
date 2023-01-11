@@ -62,9 +62,7 @@ def add_borders(source, color=(255, 255, 255), show_image=False):
     # border_size = min(int(0.05 * original.shape[0]),int(0.05 * original.shape[1]))
 
     # original_with_border = cv.copyMakeBorder(src=src,top=border_size,bottom=border_size,left=border_size,right=border_size,borderType=borderType,None,value=color)
-    original_with_border = cv2.copyMakeBorder(
-        src, top, bottom, left, right, borderType, None, value
-    )
+    original_with_border = cv2.copyMakeBorder(src, top, bottom, left, right, borderType, None, value)
 
     if show_image:
         cv2.imshow(window_name, original_with_border)
@@ -93,9 +91,15 @@ def show(title, image):
     cv2.waitKey(1)
 
 
-def multiple_transformations_tresholding(
-    img_grey, file_name, THRESH_MIN=250, THESH_MAX=250
-):
+def write(filename, image, folder="processing"):
+    # writing in subfolder images
+    full_folder = "images/" + folder + "/"
+    full_path = full_folder + filename
+    print(full_path)
+    cv2.imwrite(full_path, image)
+
+
+def multiple_transformations_tresholding(img_grey, file_name, THRESH_MIN=250, THESH_MAX=250):
     # THRESH_MIN = 250
     # THESH_MAX = 255
     ret, thresh1 = cv2.threshold(img_grey, THRESH_MIN, THESH_MAX, cv2.THRESH_BINARY)
@@ -123,18 +127,14 @@ def multiple_transformations_tresholding(
     plt.show()
 
 
-def build_threshold(
-    source, THRESH_MIN, THESH_MAX, method=cv2.THRESH_BINARY_INV, show_image=False
-):
+def build_threshold(source, THRESH_MIN, THESH_MAX, method=cv2.THRESH_BINARY_INV, show_image=False):
     ret, thresh = cv2.threshold(source, THRESH_MIN, THESH_MAX, method)
     if show_image:
         show("After thresholding", thresh)
     return ret, thresh
 
 
-def iterate_image_processing(
-    source, thresh, morph_operator, morph_elem, show_image=False
-):
+def iterate_image_processing(source, thresh, morph_operator, morph_elem, show_image=False):
 
     element = cv2.getStructuringElement(
         morph_elem,
@@ -190,3 +190,25 @@ def iterate_image_processing(
         cv2.waitKey(1)
 
     return images, img_stack
+
+
+def label_stack(img_stacked, img_original, img_names: list, blackwhite: bool = True):
+    if blackwhite:
+        color = 0
+    else:
+        color = (0, 255, 0)  # green
+    width = img_original.shape[1]
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    for index, image_name in enumerate(img_names):
+        image = cv2.putText(
+            img_stacked,
+            f"{index + 1} - {image_name}",
+            (5 + width * index, 500),
+            font,
+            8,  # fontScale (8 is fairly good)
+            color,
+            # 4,  # thickness
+            12,  # thickness
+            cv2.LINE_AA,
+        )
+    return img_stacked
