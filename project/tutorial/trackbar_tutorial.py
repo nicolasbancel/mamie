@@ -2,6 +2,10 @@
 # https://docs.opencv.org/3.4/da/d6a/tutorial_trackbar.html
 
 
+### In ipython :
+# python3 trackbar_tutorial.py --input1 /Users/nicolasbancel/git/perso/mamie/data/mosaic/mamie0037.jpg --input2 /Users/nicolasbancel/git/perso/mamie/data/mosaic/mamie0001.jpg
+
+
 from __future__ import print_function
 from __future__ import division
 import cv2 as cv
@@ -18,15 +22,9 @@ def on_trackbar(val):
     cv.imshow(title_window, dst)
 
 
-parser = argparse.ArgumentParser(
-    description="Code for Adding a Trackbar to our applications tutorial."
-)
-parser.add_argument(
-    "--input1", help="Path to the first input image.", default="LinuxLogo.jpg"
-)
-parser.add_argument(
-    "--input2", help="Path to the second input image.", default="WindowsLogo.jpg"
-)
+parser = argparse.ArgumentParser(description="Code for Adding a Trackbar to our applications tutorial.")
+parser.add_argument("--input1", help="Path to the first input image.", default="LinuxLogo.jpg")
+parser.add_argument("--input2", help="Path to the second input image.", default="WindowsLogo.jpg")
 args = parser.parse_args()
 src1 = cv.imread(cv.samples.findFile(args.input1))
 src2 = cv.imread(cv.samples.findFile(args.input2))

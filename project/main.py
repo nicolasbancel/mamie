@@ -9,16 +9,10 @@ def all_steps(picture_name):
 
     original = load_original(picture_name)
 
-    original_rectangles = whiten_edges(
-        original, 15, 25, color=(255, 255, 255), show_image=False
-    )
-    original_with_border = add_borders(
-        original_rectangles, color=(255, 255, 255), show_image=False
-    )
+    original_rectangles = whiten_edges(original, 15, 25, color=(255, 255, 255), show_image=False)
+    original_with_border = add_borders(original_rectangles, color=(255, 255, 255), show_image=False)
     img_grey = grey_original(original_with_border)
-    ret, thresh = build_threshold(
-        img_grey, constant.THRESH_MIN, constant.THESH_MAX, cv2.THRESH_BINARY_INV
-    )
+    ret, thresh = build_threshold(img_grey, constant.THRESH_MIN, constant.THESH_MAX, cv2.THRESH_BINARY_INV)
     kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (10, 10))
     erosion_two_iteration = cv2.erode(thresh, kernel, iterations=2)
     contours, _ = find_contours(source=erosion_two_iteration)
@@ -50,9 +44,7 @@ def iterate(dir):
 if __name__ == "__main__":
 
     ap = argparse.ArgumentParser()
-    ap.add_argument(
-        "-i", "--image", required=False, help="Name of image - located in mosaic dir"
-    )
+    ap.add_argument("-i", "--image", required=False, help="Name of image - located in mosaic dir")
     args = vars(ap.parse_args())
 
     if len(args) == 1:

@@ -2,17 +2,25 @@ import os
 from pathlib import Path
 from matplotlib import pyplot as plt
 import numpy as np
+import argparse
 import cv2 as cv2
 import constant
 
+parser = argparse.ArgumentParser(description="Code for Canny Edge Detector tutorial.")
+parser.add_argument("--input", help="Path to input image.", default="mamie0037.jpg")
+args = parser.parse_args()
 
-def load_original(file_name):
+
+def load_original(file_name=args.input):
+
+    MOSAIC_DIR = "/Users/nicolasbancel/git/perso/mamie/data/mosaic/"
     # mosaic_dir = os.path.join(Path.cwd().parent, "data/mosaic/")
-    first_file = os.path.join(constant.MOSAIC_DIR, file_name)
-    print(first_file)
-    print(f"The mosaic directory is : {constant.MOSAIC_DIR}")
+    # first_file = os.path.join(constant.MOSAIC_DIR, file_name)
+    # print(first_file)
+    # print(f"The mosaic directory is : {constant.MOSAIC_DIR}")
     # print(f"The other mosaic directory is : {constant.MOSAIC_DIR_OTHER}")
-    original = cv2.imread(first_file)
+    file_path = os.path.join(MOSAIC_DIR, file_name)
+    original = cv2.imread(file_path)
     return original
 
 

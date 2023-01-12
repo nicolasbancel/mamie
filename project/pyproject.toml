@@ -7,8 +7,9 @@ authors = ["Nicolas Bancel <nicolas.bancel@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.8"
 pandas = "^1.4.2"
-opencv-python = "^4.6.0"
+opencv-python = "^4.7.0"
 matplotlib = "^3.6.2"
+opencv-contrib-python-rolling = "^5.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "7.1.2"

@@ -139,44 +139,102 @@ def test_threshold(picture_name, method="bilateral", show_image=True):
         # stacked = np.hstack((th0_blur_chan, th1_blur_chan, th0_chan, th1_chan))
         # show("Stacked", stacked)
 
-        return (img, output)
+    return img, output
 
 
-def erosion(img, morph_shape=cv2.MORPH_RECT):
+def erosion(img, morph_shape=cv2.MORPH_CROSS):
+    # types of morph_shapes =
+    # MORPH_CROSS
+    # MORPH_RECT
+    # MORPH_ELLIPSE
     erosion_size = cv2.getTrackbarPos(TITLE_KERNEL_SIZE, TITLE_EROSION_WINDOW)
     # erosion_shape = morph_shape(cv2.getTrackbarPos(title_trackbar_element_shape, title_erosion_window))
     element = cv2.getStructuringElement(morph_shape, (2 * erosion_size + 1, 2 * erosion_size + 1), (erosion_size, erosion_size))
     eroded = cv2.erode(img, element)
-    show(TITLE_EROSION_WINDOW, eroded)
+    cv2.imshow(TITLE_EROSION_WINDOW, eroded)
+    # show(TITLE_EROSION_WINDOW, eroded)
 
 
-def dilatation(img, morph_shape=cv2.MORPH_RECT):
+def dilatation(img, morph_shape=cv2.MORPH_CROSS):
     dilatation_size = cv2.getTrackbarPos(TITLE_KERNEL_SIZE, TITLE_DILATATION_WINDOW)
     # erosion_shape = morph_shape(cv2.getTrackbarPos(title_trackbar_element_shape, title_erosion_window))
     element = cv2.getStructuringElement(morph_shape, (2 * dilatation_size + 1, 2 * dilatation_size + 1), (dilatation_size, dilatation_size))
     dilated = cv2.dilate(img, element)
-    show(TITLE_DILATATION_WINDOW, dilated)
+    cv2.imshow(TITLE_DILATATION_WINDOW, dilated)
+    # show(TITLE_DILATATION_WINDOW, dilated)
 
 
 def test_morph_operations(img):
-    # Erosion
-    cv2.namedWindow(TITLE_EROSION_WINDOW)
+    # EROSION PART
+
     # 4 is for the value at start
     # Max kernel size is for the max value kernel size can have
-    cv2.createTrackbar(TITLE_KERNEL_SIZE, TITLE_EROSION_WINDOW, 4, MAX_KERNEL_SIZE, erosion)
 
-    erosion(img)
+    # cv2.namedWindow(TITLE_EROSION_WINDOW)
+    # cv2.createTrackbar(TITLE_KERNEL_SIZE, TITLE_EROSION_WINDOW, 2, MAX_KERNEL_SIZE, erosion)
+
+    ## DILATATION PART
+
+    cv2.namedWindow(TITLE_DILATATION_WINDOW)
+    cv2.createTrackbar(TITLE_KERNEL_SIZE, TITLE_DILATATION_WINDOW, 1, MAX_KERNEL_SIZE, dilatation)
+
+    # erosion(img)
+    dilatation(img)
+    cv2.waitKey(30000)
+    # cv2.destroyAllWindows()
+    # should not write cv2.waitKey(1) because then it stays only 1 millisecond
+    # cv2.waitKey()
+
+
+def test_canny_edge(picture_name, thresholding=True, show_image=True):
+
+    if thresholding:
+        img_suffix = "thresh"
+        print("Canny after thresholding")
+        img, output = test_threshold(picture_name, method="morph_iterations", show_image=False)
+        thresh = output["mean"]
+        c0 = cv2.Canny(thresh, threshold1=100, threshold2=200, L2gradient=True)
+        c1 = cv2.Canny(thresh, threshold1=200, threshold2=255, L2gradient=True)
+        c2 = cv2.Canny(thresh, threshold1=50, threshold2=100, L2gradient=True)
+        c3 = cv2.Canny(thresh, threshold1=125, threshold2=175, L2gradient=True)
+
+    else:
+        img_suffix = "no_thresh"
+        img = add_margin(picture_name)
+        img_grey = grey_original(img)
+        c0 = cv2.Canny(img_grey, threshold1=100, threshold2=200, L2gradient=True)
+        c1 = cv2.Canny(img_grey, threshold1=200, threshold2=255, L2gradient=True)
+        c2 = cv2.Canny(img_grey, threshold1=50, threshold2=100, L2gradient=True)
+        c3 = cv2.Canny(img_grey, threshold1=125, threshold2=175, L2gradient=True)
+
+    stacked = np.hstack((c0, c1, c2, c3))
+
+    labels = ["(100,200)", "(200,255)", "(50,100)", "(125,175)"]
+    stacked = label_stack(stacked, img, labels, blackwhite=True)
+
+    write(f"canny_{img_suffix}_{picture_name}", stacked, folder="processing")
+
+    if show_image:
+        show("Stacked - {img_suffix}", stacked)
+
+    return {"config1": c0, "config2": c1, "config3": c2, "config4": c3}
 
 
 if __name__ == "__main__":
+
+    # IN ipython shell :
+    # from testing import *
+    #
     original, output = test_threshold("mamie0037.jpg", method="morph_iterations", show_image=False)
     picked_output = output["mean"]
     show("Mean - Not blurred", picked_output)
-
+    test_morph_operations(picked_output)
     # Morph changes
     # test_morph_operations(picked_output)
 
     # By default : retrieval_mode=cv2.RETR_EXTERNAL
+
+    """
     contours, _ = find_contours(source=picked_output, retrieval_mode=cv2.RETR_LIST)
     original_with_main_contours, PictureContours, key = draw_main_contours(
         original,
@@ -187,3 +245,4 @@ if __name__ == "__main__":
         only_rectangles=True,
         show_image=True,
     )
+    """

@@ -2,6 +2,7 @@ import cv2
 
 
 def find_contours(source, retrieval_mode=cv2.RETR_EXTERNAL):
+    # cv2.RETR_EXTERNAL : external contours only
     contours, hierarchy = cv2.findContours(source.copy(), retrieval_mode, cv2.CHAIN_APPROX_NONE)
     return contours, hierarchy
 
