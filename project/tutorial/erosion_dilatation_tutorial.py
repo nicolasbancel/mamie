@@ -25,16 +25,10 @@ def main(image):
     # cv.namedWindow(title_erosion_window)
     # Modified :
     cv.namedWindow(title_erosion_window, flags=4)
-    cv.createTrackbar(
-        title_trackbar_element_shape, title_erosion_window, 0, max_elem, erosion
-    )
-    cv.createTrackbar(
-        title_trackbar_kernel_size, title_erosion_window, 0, max_kernel_size, erosion
-    )
+    cv.createTrackbar(title_trackbar_element_shape, title_erosion_window, 0, max_elem, erosion)
+    cv.createTrackbar(title_trackbar_kernel_size, title_erosion_window, 0, max_kernel_size, erosion)
     cv.namedWindow(title_dilation_window)
-    cv.createTrackbar(
-        title_trackbar_element_shape, title_dilation_window, 0, max_elem, dilatation
-    )
+    cv.createTrackbar(title_trackbar_element_shape, title_dilation_window, 0, max_elem, dilatation)
     cv.createTrackbar(
         title_trackbar_kernel_size,
         title_dilation_window,
@@ -60,9 +54,7 @@ def morph_shape(val):
 
 def erosion(val):
     erosion_size = cv.getTrackbarPos(title_trackbar_kernel_size, title_erosion_window)
-    erosion_shape = morph_shape(
-        cv.getTrackbarPos(title_trackbar_element_shape, title_erosion_window)
-    )
+    erosion_shape = morph_shape(cv.getTrackbarPos(title_trackbar_element_shape, title_erosion_window))
 
     element = cv.getStructuringElement(
         erosion_shape,
@@ -75,12 +67,8 @@ def erosion(val):
 
 
 def dilatation(val):
-    dilatation_size = cv.getTrackbarPos(
-        title_trackbar_kernel_size, title_dilation_window
-    )
-    dilation_shape = morph_shape(
-        cv.getTrackbarPos(title_trackbar_element_shape, title_dilation_window)
-    )
+    dilatation_size = cv.getTrackbarPos(title_trackbar_kernel_size, title_dilation_window)
+    dilation_shape = morph_shape(cv.getTrackbarPos(title_trackbar_element_shape, title_dilation_window))
     element = cv.getStructuringElement(
         dilation_shape,
         (2 * dilatation_size + 1, 2 * dilatation_size + 1),
@@ -91,9 +79,10 @@ def dilatation(val):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Code for Eroding and Dilating tutorial."
-    )
+
+    # where is mamie0037.jpg file for example
+    # /Users/nicolasbancel/git/perso/mamie/data/mosaic/mamie0037.jpg
+    parser = argparse.ArgumentParser(description="Code for Eroding and Dilating tutorial.")
     parser.add_argument("--input", help="Path to input image.", default="LinuxLogo.jpg")
     args = parser.parse_args()
     main(args.input)
