@@ -21,5 +21,5 @@ seems to do a good job
   ```
 
 ## Canny edges 
-- No need 
+- Canny detection
 

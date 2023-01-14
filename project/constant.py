@@ -19,6 +19,8 @@ morph_operator = morph_op_dic[0]
 morph_elem = morph_op_dic[0]
 
 
+PROJECT_DIR = "/Users/nicolasbancel/git/perso/mamie/project/"
+
 MOSAIC_DIR = "/Users/nicolasbancel/git/perso/mamie/data/mosaic/"
 # MOSAIC_DIR = os.path.join(Path.cwd().parent, "data/mosaic/")
 # print(f"The mosaic directory is : {MOSAIC_DIR}")
