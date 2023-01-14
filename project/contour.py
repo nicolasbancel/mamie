@@ -21,16 +21,20 @@ def draw_contours(original, contours, show_image=False):
     return contours, original_with_contours
 
 
+def reshape_contour(contour):
+    pass
+
+
 def draw_main_contours(
     original,
     contours,
-    num_contours,
+    num_biggest_contours,
     contour_size,
     contours_color,
     only_rectangles=True,
     show_image=True,
 ):
-    main_contours = sorted(contours, key=cv2.contourArea, reverse=True)[:num_contours]
+    main_contours = sorted(contours, key=cv2.contourArea, reverse=True)[:num_biggest_contours]
 
     PictureContours = []
     num_rectangles = 0
@@ -66,7 +70,7 @@ def draw_main_contours(
 
     message = {
         "total_num_contours": len(contours),
-        "num_biggest_contours": num_contours,
+        "num_biggest_contours": num_biggest_contours,
         "num_detected_photos_on_mosaic": num_rectangles,
         "num_photos_on_mosaic": len(contours_areas),
         "photos_areas": contours_areas,
@@ -84,7 +88,7 @@ def draw_main_contours(
     """
 
     print("Number of contours identified: ", len(contours))
-    print(f"Out of {num_contours} biggest contours - {num_rectangles} are rectangles")
+    print(f"Out of {num_biggest_contours} biggest contours - {num_rectangles} are rectangles")
 
     key = "init"
     if show_image:
