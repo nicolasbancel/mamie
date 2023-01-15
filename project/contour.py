@@ -31,9 +31,17 @@ def draw_main_contours(
     num_biggest_contours,
     contour_size,
     contours_color,
+    precision_param=0.01,
     only_rectangles=True,
     show_image=True,
 ):
+    """
+    precision_param=0.01 : very precise. Creates sharp angles, and prevents from identifying simple rectangles sometimes
+    https://docs.opencv.org/4.x/dd/d49/tutorial_py_contour_features.html
+    precision_param=0.1 : should approximate much more rectangles.
+    Although, it would prevent from splitting the "big picture in 2"
+
+    """
     main_contours = sorted(contours, key=cv2.contourArea, reverse=True)[:num_biggest_contours]
 
     PictureContours = []
@@ -47,7 +55,8 @@ def draw_main_contours(
         ### Approximating the contour
         # Calculates a contour perimeter or a curve length
         peri = cv2.arcLength(c, True)
-        approx = cv2.approxPolyDP(c, 0.01 * peri, True)
+
+        approx = cv2.approxPolyDP(c, precision_param * peri, True)
         # if our approximated contour has four points, then we
         # can assume that we have found our screen
         screenCnt = approx

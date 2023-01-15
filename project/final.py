@@ -28,15 +28,17 @@ def final_steps(picture_name, THRESH_MIN=240, THESH_MAX=255, export: Literal["al
     original = whiten_edges(original)
     original = add_borders(original)
     img_grey = grey_original(original)
-    img_blur = cv2.GaussianBlur(img_grey, (3, 3), 0)
+    img_blur = cv2.bilateralFilter(img_grey, 9, 75, 75)
+    # img_blur = cv2.GaussianBlur(img_grey, (3, 3), 0)
     thresh = cv2.threshold(img_blur, THRESH_MIN, THESH_MAX, cv2.THRESH_BINARY_INV)[1]
     contours, _ = find_contours(source=thresh)
     original_with_main_contours, PictureContours, keyboard, message = draw_main_contours(
         original,
         contours,
-        num_contours=6,
+        num_biggest_contours=6,
         contour_size=40,
         contours_color=(0, 255, 0),
+        precision_param=0.01,
         only_rectangles=False,
         show_image=False,
     )
@@ -45,8 +47,9 @@ def final_steps(picture_name, THRESH_MIN=240, THESH_MAX=255, export: Literal["al
     message["picture_name"] = picture_name
     message["rm_black_edges"] = True
     message["add_white_margin"] = True
-    message["blur_method"] = "GaussianBlur"
-    message["blur_kernel_size"] = (3, 3)
+    message["blur_method"] = "bilateralFilter"
+    message["blur_parameters"] = "(d, sigmaColor, sigmaSpace) = (9, 75, 75)"
+    # message["blur_parameters"] = "kernelsize = (3, 3)"
     message["threshold"] = True
     message["threshold_method"] = "THRESH_BINARY_INV"
     message["threshold_min"] = THRESH_MIN
@@ -98,7 +101,7 @@ if __name__ == "__main__":
         "rm_black_edges": [],
         "add_white_margin": [],
         "blur_method": [],
-        "blur_kernel_size": [],
+        "blur_parameters": [],
         "threshold": [],
         "threshold_method": [],
         "threshold_min": [],
