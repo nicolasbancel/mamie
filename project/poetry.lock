@@ -545,6 +545,21 @@ test = ["pytest (>=6.2)", "virtualenv (>20)"]
 toml = ["setuptools (>=42)"]
 
 [[package]]
+name = "shapely"
+version = "2.0.0"
+description = "Manipulation and analysis of geometric objects"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+numpy = ">=1.14"
+
+[package.extras]
+docs = ["numpydoc (>=1.1.0,<1.2.0)", "matplotlib", "sphinx", "sphinx-book-theme", "sphinx-remove-toctrees"]
+test = ["pytest", "pytest-cov"]
+
+[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -607,7 +622,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "a0b8c98be720ac98a43fb6933ba6e4ea6db4f38189300bc1c6df2ec89545e359"
+content-hash = "a83f69b398b0a09181c9185ed2f3b9ac3c50a8e45379e92dd74bf6766aa5dc2d"
 
 [metadata.files]
 appnope = []
@@ -668,6 +683,7 @@ python-dateutil = [
 ]
 pytz = []
 setuptools-scm = []
+shapely = []
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
     {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},

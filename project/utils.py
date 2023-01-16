@@ -99,6 +99,9 @@ def stack_images(list_labels, list_images, message, num_columns=4):
         ]
 
         new_message = {k: message[k] for k in final_message_columns}
+        new_message["modifs"] = f"rm_black_edges : {message['rm_black_edges']} | add_white_margin : {message['add_white_margin']}"
+        new_message["blur"] = f"blur_method : {message['blur_method']} | blur_parameters : {message['blur_parameters']}"
+        new_message["thresh"] = f"threshold_method  : {message['threshold_method']} | min :  {message['threshold_min']} | max :  {message['threshold_max']}"
 
         # Labeling
 

@@ -6,12 +6,14 @@ import argparse
 import cv2 as cv2
 import constant
 
-parser = argparse.ArgumentParser(description="Code for Canny Edge Detector tutorial.")
-parser.add_argument("--input", help="Path to input image.", default="mamie0037.jpg")
-args = parser.parse_args()
+# parser = argparse.ArgumentParser(description="Code for Canny Edge Detector tutorial.")
+# parser.add_argument("--input", help="Path to input image.", default="mamie0037.jpg")
+# args = parser.parse_args()
+
+# def load_original(file_name=args.input):
 
 
-def load_original(file_name=args.input):
+def load_original(file_name):
 
     MOSAIC_DIR = "/Users/nicolasbancel/git/perso/mamie/data/mosaic/"
     # mosaic_dir = os.path.join(Path.cwd().parent, "data/mosaic/")

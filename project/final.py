@@ -4,6 +4,13 @@ from testing import *
 from constant import *
 from utils import *
 from typing import Literal
+import argparse
+
+#############################################
+# Image
+# python3 final.py --image "mamie0008.jpg"
+#############################################
+
 
 #############################################
 # [ISSUE] with white
@@ -23,13 +30,13 @@ from typing import Literal
 #############################################
 
 
-def final_steps(picture_name, THRESH_MIN=240, THESH_MAX=255, export: Literal["all", "fail_only"] = "fail_only"):
+def final_steps(picture_name, THRESH_MIN, THESH_MAX, export: Literal["all", "fail_only"] = "fail_only"):
     original = load_original(picture_name)
     original = whiten_edges(original)
     original = add_borders(original)
     img_grey = grey_original(original)
-    img_blur = cv2.bilateralFilter(img_grey, 9, 75, 75)
-    # img_blur = cv2.GaussianBlur(img_grey, (3, 3), 0)
+    # img_blur = cv2.bilateralFilter(img_grey, 9, 75, 75) # PAS EFFICACE
+    img_blur = cv2.GaussianBlur(img_grey, (3, 3), 0)
     thresh = cv2.threshold(img_blur, THRESH_MIN, THESH_MAX, cv2.THRESH_BINARY_INV)[1]
     contours, _ = find_contours(source=thresh)
     original_with_main_contours, PictureContours, keyboard, message = draw_main_contours(
@@ -47,9 +54,10 @@ def final_steps(picture_name, THRESH_MIN=240, THESH_MAX=255, export: Literal["al
     message["picture_name"] = picture_name
     message["rm_black_edges"] = True
     message["add_white_margin"] = True
-    message["blur_method"] = "bilateralFilter"
-    message["blur_parameters"] = "(d, sigmaColor, sigmaSpace) = (9, 75, 75)"
-    # message["blur_parameters"] = "kernelsize = (3, 3)"
+    message["blur_method"] = "GaussianBlur"
+    # message["blur_method"] = "bilateralFilter"
+    # message["blur_parameters"] = "(d, sigmaColor, sigmaSpace) = (9, 75, 75)"
+    message["blur_parameters"] = "kernelsize = (3, 3)"
     message["threshold"] = True
     message["threshold_method"] = "THRESH_BINARY_INV"
     message["threshold_min"] = THRESH_MIN
@@ -75,10 +83,17 @@ def final_steps(picture_name, THRESH_MIN=240, THESH_MAX=255, export: Literal["al
             failure_path = PATH + "failure/" + picture_name
             cv2.imwrite(failure_path, final)
 
-    return message
+    return original, original_with_main_contours, PictureContours, message
 
 
 if __name__ == "__main__":
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-i", "--image", required=True, help="Name of image - located in mosaic dir")
+    args = vars(ap.parse_args())
+
+    print(args)
+
     # THRESH_MIN = 252  # Identifies the biggest contour of the 2 pictures in 1 massive rectangle
 
     # THRESH_MIN = 240  # GOOD - TO KEEP [RUN #1]
@@ -109,17 +124,22 @@ if __name__ == "__main__":
         "config_num": [],
     }
 
-    for file in os.listdir(MOSAIC_DIR):
-        filename = os.fsdecode(file)
-        if filename.endswith(".jpg") or filename.endswith(".png"):
-            print(f"\n Extracting contours of file : {filename} \n")
-            message = final_steps(filename, THRESH_MIN, THESH_MAX)
-            for key in set(FINAL_MESSAGE) - {"config_num"}:
-                FINAL_MESSAGE[key].append(message[key])
-            FINAL_MESSAGE["config_num"].append(CONFIG_NUM)
-        else:
-            print("Else")
-            continue
+    if len(args) == 1:
+        # Enables : python3 main.py -i "mamie0001.jpg" to work and display only 1 image
+        final_steps(args["image"], THRESH_MIN, THESH_MAX)
+    else:
+        "Iterate through all images + log in the results.csv file"
+        for file in os.listdir(MOSAIC_DIR):
+            filename = os.fsdecode(file)
+            if filename.endswith(".jpg") or filename.endswith(".png"):
+                print(f"\n Extracting contours of file : {filename} \n")
+                message = final_steps(filename, THRESH_MIN, THESH_MAX)
+                for key in set(FINAL_MESSAGE) - {"config_num"}:
+                    FINAL_MESSAGE[key].append(message[key])
+                FINAL_MESSAGE["config_num"].append(CONFIG_NUM)
+            else:
+                print("Else")
+                continue
 
-    log_results(FINAL_MESSAGE)
+        log_results(FINAL_MESSAGE)
     # print(FINAL_MESSAGE)
