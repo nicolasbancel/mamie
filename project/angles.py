@@ -2,6 +2,7 @@
 
 from final import *
 from statistics import mean
+from shapely.geometry import Polygon, LineString
 
 #####
 ##
@@ -56,16 +57,19 @@ canvas_columns = 6000
 canvas = np.zeros((canvas_rows, canvas_columns, 3))  # floats, range 0..1
 canvas_original = canvas.copy()
 
-cv2.polylines(canvas, [contour], isClosed=True, color=(1, 1, 1))
+# https://stackoverflow.com/questions/19103933/depth-error-in-2d-image-with-opencv-python
+canvas_copy = np.uint8(canvas)
+
+cv2.polylines(canvas_copy, [contour], isClosed=True, color=(1, 1, 1))
 
 # fontScale=20 // thickness=5 : thickness is good, fontScale is way too big
 # fontScale=7 // thickness=5 :
 
 for i, angle in enumerate(angles_degrees):
-    cv2.circle(canvas, center=tuple(contour[i]), radius=20, color=(0, 0, 1), thickness=cv2.FILLED)
-    cv2.putText(canvas, f"{angle:+.1f}", org=tuple(contour[i]), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=7, color=(0, 1, 1), thickness=5)
+    cv2.circle(canvas_copy, center=tuple(contour[i]), radius=20, color=(0, 0, 1), thickness=cv2.FILLED)
+    cv2.putText(canvas_copy, f"{angle:+.1f}", org=tuple(contour[i]), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=7, color=(0, 1, 1), thickness=5)
 
-show("Canvas", canvas)
+show("Canvas", canvas_copy)
 
 
 ## Identify bad points vs points for scission between
