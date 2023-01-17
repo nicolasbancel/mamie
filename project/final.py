@@ -31,6 +31,8 @@ import argparse
 
 
 def final_steps(picture_name, THRESH_MIN, THESH_MAX, export: Literal["all", "fail_only"] = "fail_only"):
+    MAPPING_DICT = num_pictures_per_mosaic(filename="pictures_per_mosaic.csv")
+    true_num_pictures = int(MAPPING_DICT[picture_name])
     original = load_original(picture_name)
     original = whiten_edges(original)
     original = add_borders(original)

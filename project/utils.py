@@ -17,6 +17,14 @@ import pdb
 # (0, 255, 0) is GREEN
 
 
+def num_pictures_per_mosaic(filename="pictures_per_mosaic.csv"):
+    with open(filename, mode="r") as file:
+        reader = csv.reader(file)
+        next(reader, None)
+        mapping = {rows[0]: rows[1] for rows in reader}
+    return mapping
+
+
 def draw(img, contour, color_index=0, show_points=True):
     """
     This function does NOT impact img - it simply display on top of a duplicate
