@@ -1,4 +1,6 @@
 ## Working on mamie0019.jpg
+
+## Working on mamie0008.jpg
 ## Working on mamie0030.jpg as well
 
 from final import *
@@ -13,6 +15,7 @@ import geopandas as gpd  # ONLY NEEDED IN DEV ENVIRONMENT
 ## original, original_with_main_contours, PictureContours, keyboard, message = load_end_to_end(picture_name="mamie0008.jpg")
 
 SMALL_ANGLE_THRESH = 7
+THRESHOLD = 0.25
 
 
 def get_angles(contour):
@@ -26,27 +29,27 @@ def get_angles(contour):
     angles = np.arcsin(crossproducts)
     angles_degrees = angles / np.pi * 180
 
-    return angles_degrees, MAX_SIDE_LENGTH
+    return angles_degrees, MAX_SIDE_LENGTH, alengths, blengths
 
 
-def plot_angles(contour, angles_degrees, num_point):
+def plot_angles(contour, angles_degrees):
     canvas_rows = 6000
     canvas_columns = 6000
     canvas = np.zeros((canvas_rows, canvas_columns, 3))  # floats, range 0..1
     # OR OTHER SOLUTION
     # new_canvas = (canvas * 255).astype(np.uint8)
     # OR
-    # canvas_copy = np.uint8(canvas)
+    canvas_copy = np.uint8(canvas)
     canvas_original = canvas.copy()
-    cv2.polylines(canvas, [contour], isClosed=True, color=(1, 1, 1))
+    cv2.polylines(canvas_copy, [contour], isClosed=True, color=(1, 1, 1))
     for i, angle in enumerate(angles_degrees):
-        cv2.circle(canvas, center=tuple(contour[i]), radius=20, color=(0, 0, 1), thickness=cv2.FILLED)
-        cv2.putText(canvas, f"{angle:+.1f}", org=tuple(contour[i]), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=7, color=(0, 1, 1), thickness=5)
+        cv2.circle(canvas_copy, center=tuple(contour[i]), radius=20, color=(0, 0, 1), thickness=cv2.FILLED)
+        cv2.putText(canvas_copy, f"{angle:+.1f}", org=tuple(contour[i]), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=7, color=(0, 1, 1), thickness=5)
 
-    show("Canvas", canvas)
+    show("Canvas", canvas_copy)
 
 
-def enrich_contour_info(contour, angles_degrees):
+def enrich_contour_info(contour, angles_degrees, alengths, blengths):
     num_point = len(contour)
     point_category = np.transpose([["good"] * num_point])
     enriched_contour = np.hstack([contour, angles_degrees.reshape((-1, 1)), alengths.reshape((-1, 1)), blengths.reshape((-1, 1)), point_category])
@@ -79,7 +82,7 @@ def enrich_contour_info(contour, angles_degrees):
         after = np.asarray(scission["after_scission_point"], dtype=int)
         middle_point = [mean([before[0], after[0]]), mean([before[1], after[1]])]
 
-    return enriched_contour, scission_information
+    return enriched_contour, scission_information, middle_point
 
 
 def plot_points(angle_degrees, enriched_contour, contour):
@@ -103,13 +106,25 @@ def plot_points(angle_degrees, enriched_contour, contour):
 
 if __name__ == '__main__':
     
-    original, original_with_main_contours, PictureContours, message = final_steps(picture_name="mamie0008.jpg", THRESH_MIN=245, THESH_MAX=255)
+    # INTRO STEPS - LOADING DATA
+    original, original_with_main_contours, PictureContours, message = final_steps(picture_name="mamie0030.jpg", THRESH_MIN=245, THESH_MAX=255)
     contour = PictureContours[0][0]
     test = original.copy()
-    # cv2.drawContours(test, contour_0, -1, (0, 255, 0), 40) # This only shows points
     cv2.drawContours(test, [contour], -1, (0, 255, 0), 40)
     show("Contour", test)
-    enriched_contour = get_angles(contour)
+    
+    # GETTING ANGLES
+    angles_degrees, MAX_SIDE_LENGTH, alengths, blengths = get_angles(contour)
+    # plot_angles(contour, angles_degrees)
+    enriched_contour, scission_information = enrich_contour_info(contour, angles_degrees, alengths, blengths)
+
+
+
+
+
+
+
+
 
 
     # def get_angles(contour):
