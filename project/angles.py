@@ -3,9 +3,10 @@
 ## Working on mamie0008.jpg
 ## Working on mamie0030.jpg as well
 
-## mamie0024.jpg
+## mamie0024.jpg : works perfectly
 
 from final import *
+from utils import *
 from statistics import mean
 from shapely.geometry import Polygon, LineString
 from shapely.ops import linemerge, unary_union, polygonize
@@ -236,17 +237,41 @@ def split_contour(contour, extrapolated_point, scission_point, middle_point, ori
 
 if __name__ == "__main__":
 
-    # INTRO STEPS - LOADING DATA
-    original, original_with_main_contours, PictureContours, message = final_steps(picture_name="mamie0030.jpg", THRESH_MIN=245, THESH_MAX=255)
-    contour = PictureContours[0][0]
+    original, original_with_main_contours, PictureContours, message = final_steps(picture_name="mamie0024.jpg", THRESH_MIN=245, THESH_MAX=255)
     test = original.copy()
-    cv2.drawContours(test, [contour], -1, (0, 255, 0), 40)
-    show("Contour", test)
+    final_image = original.copy()
 
-    # GETTING ANGLES
-    angles_degrees, max_side_length, alengths, blengths = get_angles(contour)
-    # plot_angles(contour, angles_degrees)
-    enriched_contour, scission_information, middle_point, scission_point = enrich_contour_info(contour, angles_degrees, alengths, blengths)
-    cv = plot_points(angles_degrees, enriched_contour, contour, middle_point)
-    extrapolated_point = find_extrapolation(middle_point, scission_point, cv)
-    new_contours, intersection_point = split_contour(contour, extrapolated_point, scission_point, middle_point, original, cv)
+    MAX_AREA_THRESHOLD = 10000000
+    MIN_AREA_THRESHOLD = 6000000
+
+    final_contours = []
+    color_index = 0
+
+    for contour_info in PictureContours:
+        contour = contour_info[0]
+        contour_area = contour_info[1]
+        if contour_area > MAX_AREA_THRESHOLD:
+            cv2.drawContours(test, [contour], -1, (0, 255, 0), 40)
+            show("Contour", test)
+            # GETTING ANGLES
+            angles_degrees, max_side_length, alengths, blengths = get_angles(contour)
+            # plot_angles(contour, angles_degrees)
+            enriched_contour, scission_information, middle_point, scission_point = enrich_contour_info(contour, angles_degrees, alengths, blengths)
+            cv = plot_points(angles_degrees, enriched_contour, contour, middle_point)
+            extrapolated_point = find_extrapolation(middle_point, scission_point)
+            new_contours, intersection_point = split_contour(contour, extrapolated_point, scission_point, middle_point, original, cv)
+            for cont in new_contours:
+                print(f"Contour is too big - color index = {color_index}")
+                final_contours.append(cont)
+                draw(final_image, cont, color_index)
+                color_index += 1
+        elif contour_area > MIN_AREA_THRESHOLD and contour_area <= MAX_AREA_THRESHOLD:
+            print(f"Contour is too big - color index = {color_index}")
+            # Reduce size of contour
+            contour = contour[:, 0, :]
+            final_contours.append(contour)
+            # print(contour)
+            draw(final_image, contour, color_index)
+            color_index += 1
+
+    show("Final contours", final_image)

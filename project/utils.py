@@ -17,6 +17,22 @@ import pdb
 # (0, 255, 0) is GREEN
 
 
+def draw(img, contour, color_index=0, show_points=True):
+    """
+    This function does NOT impact img - it simply display on top of a duplicate
+    """
+    # List of colors : BGR
+    # Green, Red, Blue, Yellow, Cyan, Magenta
+    color_list = [(0, 255, 0), (0, 0, 255), (255, 0, 0), (0, 255, 255), (255, 255, 0), (255, 0, 255)]
+    point_color = (0, 0, 0)
+
+    # img_copy = img.copy()
+    cv2.drawContours(img, [contour], -1, color_list[color_index], 40)
+    if show_points:
+        for point in contour:
+            cv2.circle(img, center=tuple(point), radius=20, color=point_color, thickness=cv2.FILLED)
+
+
 def stack_images(list_labels, list_images, message, num_columns=4):
     """
     num_horizontal : number of horizontal pictures
