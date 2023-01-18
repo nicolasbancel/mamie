@@ -56,7 +56,7 @@ def stack_images(list_labels, list_images, message, num_columns=4):
         list_labels.append(SUMMARY_PAGE)
         num_labels = len(list_labels)
         num_rows = math.ceil(num_labels / num_columns)
-        print(f"Number of rows : {num_rows}")
+        # print(f"Number of rows : {num_rows}")
         # num_rows = int(num_images / num_columns) + 1 # This creates a corner case when num_images = 4. It would go to 8 total_images
         total_num_images = num_columns * num_rows
         num_blank_images = total_num_images - num_images
@@ -116,9 +116,13 @@ def stack_images(list_labels, list_images, message, num_columns=4):
         final_message_columns = [
             "total_num_contours",
             "num_biggest_contours",
-            "num_detected_photos_on_mosaic",
-            "num_photos_on_mosaic",
+            "num_rectangles_before_split",
+            # "predicted_num_pictures_on_mosaic",
             "photos_areas",
+            "split_contours",
+            "true_num_pictures",
+            "num_contours_after_split",
+            "num_points_per_contour",
             "success",
         ]
 
@@ -127,6 +131,7 @@ def stack_images(list_labels, list_images, message, num_columns=4):
         new_message["blur"] = f"blur_method : {message['blur_method']} | blur_parameters : {message['blur_parameters']}"
         new_message["thresh"] = f"threshold_method  : {message['threshold_method']} | min :  {message['threshold_min']} | max :  {message['threshold_max']}"
 
+        print(new_message)
         # Labeling
 
         for x in range(num_columns):

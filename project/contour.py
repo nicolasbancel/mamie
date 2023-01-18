@@ -80,11 +80,13 @@ def draw_main_contours(
     message = {
         "total_num_contours": len(contours),
         "num_biggest_contours": num_biggest_contours,
-        "num_rectangles": num_rectangles,
-        "predicted_num_pictures_on_mosaic": len(contours_areas),
+        "num_rectangles_before_split": num_rectangles,
+        # "predicted_num_pictures_on_mosaic": len(contours_areas),
         "photos_areas": contours_areas,
         # "success": num_rectangles == len(contours_areas),
     }
+
+    # print(message)
 
     # print("Number of contours identified: ", len(contours))
     # print(f"Out of {num_biggest_contours} biggest contours - {num_rectangles} are rectangles")
