@@ -1,4 +1,6 @@
 import cv2
+from constant import *
+import pdb
 
 
 def find_contours(source, retrieval_mode=cv2.RETR_EXTERNAL):
@@ -28,7 +30,6 @@ def reshape_contour(contour):
 def draw_main_contours(
     original,
     contours,
-    num_biggest_contours,
     contour_size,
     contours_color,
     precision_param=0.01,
@@ -42,16 +43,15 @@ def draw_main_contours(
     Although, it would prevent from splitting the "big picture in 2"
 
     """
-    main_contours = sorted(contours, key=cv2.contourArea, reverse=True)[:num_biggest_contours]
 
-    PictureContours = []
+    # no_approx_main_contours : has no shape approximation
+    no_approx_main_contours = sorted([c for c in contours if cv2.contourArea(c) > MIN_AREA_THRESHOLD], key=cv2.contourArea, reverse=True)
+
+    #
+    main_contours = []
     num_rectangles = 0
 
-    # If the contour area is more than 1M pixels square : we consider it's probably that
-    # we've found a contour around / close to an actual picture
-    PROBABLE_PICTURE_AREA = 1000000
-
-    for c in main_contours:
+    for c in no_approx_main_contours:
         ### Approximating the contour
         # Calculates a contour perimeter or a curve length
         peri = cv2.arcLength(c, True)
@@ -65,25 +65,22 @@ def draw_main_contours(
             num_rectangles += 1
         if only_rectangles:
             if len(approx) == 4:
-                PictureContours.append([screenCnt, cv2.contourArea(screenCnt)])
+                main_contours.append(screenCnt)
         else:
-            PictureContours.append([screenCnt, cv2.contourArea(screenCnt)])
+            main_contours.append(screenCnt)
         # show the contour (outline)
 
     original_with_main_contours = original.copy()
 
-    contours_shape = [x[0] for x in PictureContours]
-    contours_areas = [x[1] for x in PictureContours if x[1] > PROBABLE_PICTURE_AREA]
+    contours_areas = [cv2.contourArea(x) for x in main_contours]
 
-    cv2.drawContours(original_with_main_contours, contours_shape, -1, contours_color, contour_size)
+    cv2.drawContours(original_with_main_contours, main_contours, -1, contours_color, contour_size)
 
     message = {
         "total_num_contours": len(contours),
-        "num_biggest_contours": num_biggest_contours,
+        "num_biggest_contours": len(main_contours),
         "num_rectangles_before_split": num_rectangles,
-        # "predicted_num_pictures_on_mosaic": len(contours_areas),
         "photos_areas": contours_areas,
-        # "success": num_rectangles == len(contours_areas),
     }
 
     # print(message)
@@ -98,4 +95,4 @@ def draw_main_contours(
         cv2.destroyAllWindows()
         key = cv2.waitKey(1)
 
-    return original_with_main_contours, PictureContours, key, message
+    return original_with_main_contours, main_contours, key, message

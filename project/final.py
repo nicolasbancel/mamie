@@ -47,10 +47,9 @@ def final_steps(picture_name, THRESH_MIN, THESH_MAX, export: Literal["all", "fai
     img_blur = cv2.GaussianBlur(img_grey, (3, 3), 0)
     thresh = cv2.threshold(img_blur, THRESH_MIN, THESH_MAX, cv2.THRESH_BINARY_INV)[1]
     contours, _ = find_contours(source=thresh)
-    original_with_main_contours, PictureContours, keyboard, message = draw_main_contours(
+    original_with_main_contours, main_contours, keyboard, message = draw_main_contours(
         original,
         contours,
-        num_biggest_contours=6,
         contour_size=40,
         contours_color=(0, 255, 0),
         precision_param=0.01,
@@ -222,7 +221,6 @@ contours, _ = find_contours(source=thresh)
 original_with_main_contours, PictureContours, keyboard, message = draw_main_contours(
     original,
     contours,
-    num_biggest_contours=6,
     contour_size=40,
     contours_color=(0, 255, 0),
     precision_param=0.01,

@@ -21,13 +21,6 @@ import pdb
 ##
 ## original, original_with_main_contours, PictureContours, keyboard, message = load_end_to_end(picture_name="mamie0008.jpg")
 
-SMALL_ANGLE_THRESH = 7
-THRESHOLD = 0.25
-MAX_AREA_THRESHOLD = 10000000
-
-# MIN_AREA_THRESHOLD = 6000000 WAS CAUSING PROBLEMS FOR POLAROIDs - THEY WERE TOO SMALL
-MIN_AREA_THRESHOLD = 5000000
-
 
 def get_angles(contour):
     contour.shape = (-1, 2)
@@ -60,7 +53,7 @@ def plot_angles(contour, angles_degrees):
     # show("Canvas", canvas_copy)
 
 
-def enrich_contour_info(contour, angles_degrees, alengths, blengths):
+def enrich_contour_info(contour, angles_degrees, alengths, blengths, exclude_bad_points=True):
     num_point = len(contour)
     max_side_length = alengths.max()
     point_category = np.transpose([["good"] * num_point])
@@ -73,8 +66,6 @@ def enrich_contour_info(contour, angles_degrees, alengths, blengths):
 
     for index, point in enumerate(enriched_contour):
         # print(index, point)
-        x_coord = point[0]
-        y_coord = point[1]
         angle = abs(float(point[2]))
         a_line = float(point[3])
         b_line = float(point[4])
@@ -82,20 +73,46 @@ def enrich_contour_info(contour, angles_degrees, alengths, blengths):
         length_thresh = max_side_length * THRESHOLD
         if angle < SMALL_ANGLE_THRESH:
             if a_line > length_thresh and b_line > length_thresh:
-                if index + 1 >= num_point:
-                    # This covers corner case where last point in contour is the scission point
-                    # In this case, capturing the info about the next point corresponds to getting 0th point of the contour
-                    # mamie0047.jpg : contour has 7 points. Scission is at index = 6. max index is enriched_contour[6]
-                    next_index = 0
-                else:
-                    next_index = index + 1
                 enriched_contour[index][-1] = "scission"
-                scission_dict["scission_point"] = list([x_coord, y_coord])
-                scission_dict["before_scission_point"] = list([enriched_contour[index - 1][0], enriched_contour[index - 1][1]])
-                scission_dict["after_scission_point"] = list([enriched_contour[next_index][0], enriched_contour[next_index][1]])
-                scission_information.append(scission_dict)
             else:
                 enriched_contour[index][-1] = "bad"
+
+    new_contour = []
+    idx_to_remove = []
+
+    # Exclusion or not of the bad points of the contour
+
+    if exclude_bad_points == True:
+        # remove bad points from enriched_contour
+        for index, pt in enumerate(enriched_contour):
+            if pt[5] == "bad":
+                idx_to_remove.append(index)
+            else:
+                new_contour.append(pt)
+        # remove bad points from angle_degrees
+        # https://stackoverflow.com/questions/11303225/how-to-remove-multiple-indexes-from-a-list-at-the-same-time
+
+    else:
+        new_contour = enriched_contour
+
+    ## WATCH OUT !!! angle_degress DOES NOT HAVE THE SAME SHAPE AS enriched_contour SINCE WE'VE DELETED SOME POINTS FROM
+    ## ENRICHED CONTOURS, BUT NOT IN angle_degrees
+
+    # Depending on the above : now possible to really identify well the closest points of the scission points
+    # If the scission point is surrounded by some bad points, depending on exclude_bad_points, the output will vary
+
+    for idx, element in enumerate(new_contour):
+        point_type = element[5]
+        if point_type == "scission":
+            x_coord = element[0]
+            y_coord = element[1]
+            scission_dict["scission_point"] = list([x_coord, y_coord])
+            scission_dict["before_scission_point"] = list([new_contour[idx - 1][0], new_contour[idx - 1][1]])
+            next_idx = (idx + 1) % num_point  # If scission is at index 6 in contour of shape 7 : makes next index 0 instead of 7 (out of range)
+            scission_dict["after_scission_point"] = list([new_contour[next_idx][0], enriched_contour[next_idx][1]])
+            scission_information.append(scission_dict)
+
+    # Capturing the scission point, once data is clean
 
     if len(scission_information) >= 1:
         scission = scission_information[0]
@@ -110,17 +127,19 @@ def enrich_contour_info(contour, angles_degrees, alengths, blengths):
         middle_point = None
         scission_point = None
 
-    return enriched_contour, scission_information, middle_point, scission_point, max_side_length
+    # pdb.set_trace()
+
+    return new_contour, scission_information, middle_point, scission_point, max_side_length
 
 
-def plot_points(angle_degrees, enriched_contour, contour, middle_point):
+def plot_points(enriched_contour, contour, middle_point):
     cv_rows = 6000
     cv_columns = 6000
 
     cv = np.zeros((cv_rows, cv_columns, 3))  # floats, range 0..1
     cv2.polylines(cv, [contour], isClosed=True, color=(1, 1, 1))
 
-    for i, angle in enumerate(angle_degrees):
+    for i, angle in enumerate(enriched_contour):
         if enriched_contour[i][-1] == "bad":
             cv2.circle(cv, center=tuple(contour[i]), radius=20, color=(0, 0, 1), thickness=cv2.FILLED)
         elif enriched_contour[i][-1] == "scission":
@@ -145,7 +164,7 @@ def find_extrapolation(middle_point, scission_point, max_side_length):
     - Identifies the intersection point between the scission line and the polygon
     - Splits the polygon
     """
-
+    # pdb.set_trace()
     line = LineString([middle_point, scission_point])
 
     # Line has equation
@@ -277,15 +296,14 @@ def split_contour(contour, extrapolated_point, scission_point, middle_point, ori
     return new_contours, intersection_point
 
 
-def fix_contours(PictureContours, original):
+def fix_contours(main_contours, original):
     test = original.copy()
     final_image = original.copy()
     final_contours = []
     color_index = 0
 
-    for contour_info in PictureContours:
-        contour = contour_info[0]
-        contour_area = contour_info[1]
+    for contour in main_contours:
+        contour_area = cv2.contourArea(contour)
         if contour_area > MAX_AREA_THRESHOLD:
             cv2.drawContours(test, [contour], -1, (0, 255, 0), 40)
             # UNCOMMENT FOR TESTING
@@ -299,7 +317,7 @@ def fix_contours(PictureContours, original):
             )
             # pdb.set_trace()
             if scission_point is not None:
-                cv = plot_points(angles_degrees, enriched_contour, contour, middle_point)
+                cv = plot_points(enriched_contour, contour, middle_point)
                 extrapolated_point = find_extrapolation(middle_point, scission_point, max_side_length)
                 # new_contours, intersection_point = split_contour(contour, extrapolated_point, scission_point, middle_point, original, cv)
                 new_contours, intersection_point = split_contour(contour, extrapolated_point, scission_point, middle_point, original)
