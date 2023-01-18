@@ -183,7 +183,7 @@ def config_num():
                 # print(row)
                 lines.append(row)
             max_config_num = int(lines[-1][-1])
-            print(max_config_num)
+            # print(max_config_num)
             current_config_nun = max_config_num + 1
     else:
         current_config_nun = 1

@@ -24,7 +24,9 @@ import pdb
 SMALL_ANGLE_THRESH = 7
 THRESHOLD = 0.25
 MAX_AREA_THRESHOLD = 10000000
-MIN_AREA_THRESHOLD = 6000000
+
+# MIN_AREA_THRESHOLD = 6000000 WAS CAUSING PROBLEMS FOR POLAROIDs - THEY WERE TOO SMALL
+MIN_AREA_THRESHOLD = 5000000
 
 
 def get_angles(contour):
@@ -215,7 +217,12 @@ def split_contour(contour, extrapolated_point, scission_point, middle_point, ori
 
     intersections = new_line.intersection(polygon)
 
-    if type(intersections) == MultiPoint:
+    # pdb.set_trace()
+
+    # print(f"Type of the intersection : {type(intersections)}")
+
+    if type(intersections) == LineString:
+        # if type(intersections) == MultiPoint:
         # if len(intersections) >= 2:
 
         # There are 2 intersections. 1 is the scission point (since it's the starting point).
