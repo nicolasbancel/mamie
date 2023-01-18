@@ -57,7 +57,7 @@ def final_steps(picture_name, THRESH_MIN, THESH_MAX, export: Literal["all", "fai
         show_image=False,
     )
 
-    final_contours, split_contours = fix_contours(PictureContours, original)
+    final_contours, split_contours = fix_contours(main_contours, original)
     num_contours = len(final_contours)
     num_points_per_contour = [len(cont) for cont in final_contours]
     # inc represents the number of contours that have more than 6 points
@@ -110,7 +110,7 @@ def final_steps(picture_name, THRESH_MIN, THESH_MAX, export: Literal["all", "fai
             failure_path = PATH + "failure/" + picture_name
             cv2.imwrite(failure_path, final)
 
-    return original, original_with_main_contours, PictureContours, final_contours, message
+    return original, original_with_main_contours, main_contours, final_contours, message
 
 
 if __name__ == "__main__":
@@ -161,7 +161,7 @@ if __name__ == "__main__":
         # Enables :
         # python3 final.py -i "mamie0001.jpg" to work and display only 1 image
         # python3 final.py -i "mamie0008.jpg"
-        original, original_with_main_contours, PictureContours, final_contours, message = final_steps(args["image"], THRESH_MIN, THESH_MAX, export="all")
+        original, original_with_main_contours, main_contours, final_contours, message = final_steps(args["image"], THRESH_MIN, THESH_MAX, export="all")
         # pdb.set_trace()
     else:
         "Iterate through all images + log in the results.csv file"
@@ -170,7 +170,7 @@ if __name__ == "__main__":
             filename = os.fsdecode(file)
             if filename.endswith(".jpg") or filename.endswith(".png"):
                 print(f"\n Extracting contours of file : {filename} \n")
-                original, original_with_main_contours, PictureContours, final_contours, message = final_steps(filename, THRESH_MIN, THESH_MAX, export="all")
+                original, original_with_main_contours, main_contours, final_contours, message = final_steps(filename, THRESH_MIN, THESH_MAX, export="all")
                 for key in set(FINAL_MESSAGE) - {"config_num"}:
                     FINAL_MESSAGE[key].append(message[key])
                 FINAL_MESSAGE["config_num"].append(CONFIG_NUM)

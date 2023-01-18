@@ -57,14 +57,14 @@ def enrich_contour_info(contour, angles_degrees, alengths, blengths, exclude_bad
     num_point = len(contour)
     max_side_length = alengths.max()
     point_category = np.transpose([["good"] * num_point])
-    enriched_contour = np.hstack([contour, angles_degrees.reshape((-1, 1)), alengths.reshape((-1, 1)), blengths.reshape((-1, 1)), point_category])
+    contour_ = np.hstack([contour, angles_degrees.reshape((-1, 1)), alengths.reshape((-1, 1)), blengths.reshape((-1, 1)), point_category])
 
     scission_dict = dict()
     scission_information = []
 
     # set_trace()
 
-    for index, point in enumerate(enriched_contour):
+    for index, point in enumerate(contour_):
         # print(index, point)
         angle = abs(float(point[2]))
         a_line = float(point[3])
@@ -73,27 +73,27 @@ def enrich_contour_info(contour, angles_degrees, alengths, blengths, exclude_bad
         length_thresh = max_side_length * THRESHOLD
         if angle < SMALL_ANGLE_THRESH:
             if a_line > length_thresh and b_line > length_thresh:
-                enriched_contour[index][-1] = "scission"
+                contour_[index][-1] = "scission"
             else:
-                enriched_contour[index][-1] = "bad"
+                contour_[index][-1] = "bad"
 
-    new_contour = []
+    enriched_contour = []
     idx_to_remove = []
 
     # Exclusion or not of the bad points of the contour
 
     if exclude_bad_points == True:
         # remove bad points from enriched_contour
-        for index, pt in enumerate(enriched_contour):
+        for index, pt in enumerate(contour_):
             if pt[5] == "bad":
                 idx_to_remove.append(index)
             else:
-                new_contour.append(pt)
+                enriched_contour.append(pt)
         # remove bad points from angle_degrees
         # https://stackoverflow.com/questions/11303225/how-to-remove-multiple-indexes-from-a-list-at-the-same-time
 
     else:
-        new_contour = enriched_contour
+        enriched_contour = contour_
 
     ## WATCH OUT !!! angle_degress DOES NOT HAVE THE SAME SHAPE AS enriched_contour SINCE WE'VE DELETED SOME POINTS FROM
     ## ENRICHED CONTOURS, BUT NOT IN angle_degrees
@@ -101,15 +101,15 @@ def enrich_contour_info(contour, angles_degrees, alengths, blengths, exclude_bad
     # Depending on the above : now possible to really identify well the closest points of the scission points
     # If the scission point is surrounded by some bad points, depending on exclude_bad_points, the output will vary
 
-    for idx, element in enumerate(new_contour):
+    for idx, element in enumerate(enriched_contour):
         point_type = element[5]
         if point_type == "scission":
             x_coord = element[0]
             y_coord = element[1]
             scission_dict["scission_point"] = list([x_coord, y_coord])
-            scission_dict["before_scission_point"] = list([new_contour[idx - 1][0], new_contour[idx - 1][1]])
+            scission_dict["before_scission_point"] = list([enriched_contour[idx - 1][0], enriched_contour[idx - 1][1]])
             next_idx = (idx + 1) % num_point  # If scission is at index 6 in contour of shape 7 : makes next index 0 instead of 7 (out of range)
-            scission_dict["after_scission_point"] = list([new_contour[next_idx][0], enriched_contour[next_idx][1]])
+            scission_dict["after_scission_point"] = list([enriched_contour[next_idx][0], enriched_contour[next_idx][1]])
             scission_information.append(scission_dict)
 
     # Capturing the scission point, once data is clean
@@ -129,12 +129,27 @@ def enrich_contour_info(contour, angles_degrees, alengths, blengths, exclude_bad
 
     # pdb.set_trace()
 
-    return new_contour, scission_information, middle_point, scission_point, max_side_length
+    return enriched_contour, scission_information, middle_point, scission_point, max_side_length
 
 
-def plot_points(enriched_contour, contour, middle_point):
+def from_enriched_to_regular(enriched_contour):
+    contour = []
+
+    for point in enriched_contour:
+        x = int(point[0])
+        y = int(point[1])
+        contour.append([x, y])
+    contour = np.array(contour, dtype=np.int64)
+
+    return contour
+
+
+def plot_points(enriched_contour, middle_point):
+    # Shows bad points anyways since no cleaning has been done yet
     cv_rows = 6000
     cv_columns = 6000
+    # pdb.set_trace()
+    contour = from_enriched_to_regular(enriched_contour)
 
     cv = np.zeros((cv_rows, cv_columns, 3))  # floats, range 0..1
     cv2.polylines(cv, [contour], isClosed=True, color=(1, 1, 1))
@@ -228,7 +243,6 @@ def split_contour(contour, extrapolated_point, scission_point, middle_point, ori
     - Determine the intersection point + draws the splitting line
     - Splits the polygon in halft
     """
-
     new_line = LineString([scission_point, extrapolated_point])
     polygon = Polygon(contour)
 
@@ -270,20 +284,24 @@ def split_contour(contour, extrapolated_point, scission_point, middle_point, ori
         borders = unary_union(merged)
         polygons = list(polygonize(borders))
 
-        # new_contours is a list of contours
-        new_contours = [np.array(list(pol.exterior.coords), dtype=int) for pol in polygons]
+        # pdb.set_trace()
+
+        # split_contours is a list of contours
+        # Polygons in Shapely repeat the first and last coordinate point
+        # We should avoid that - otherwise it counts 1 corner twice - hence we would get 5 corners recorded for a rectangle
+        split_contours = [np.array(list(pol.exterior.coords)[:-1], dtype=int) for pol in polygons]
     else:
         # This happens in scenario "mamie0047.jpg" where there's a scission point
         # This scission point is on the complete edge of the polygon, has a long length, and
         # does not intersect with the polygon
         intersection_point = None
-        new_contours = [contour]
+        split_contours = [contour]
 
     color_list = [(0, 255, 0), (0, 0, 255), (255, 0, 0)]
 
     original_copy = original.copy()
 
-    for index, p in enumerate(new_contours):
+    for index, p in enumerate(split_contours):
         # print(f"Number of points in contour : {len(p)}")
         # print(p)
         cv2.drawContours(original_copy, [p], -1, color_list[index], 40)
@@ -293,7 +311,7 @@ def split_contour(contour, extrapolated_point, scission_point, middle_point, ori
     # UNCOMMENT FOR TESTING
     # show("New contours", original_copy)
 
-    return new_contours, intersection_point
+    return split_contours, intersection_point
 
 
 def fix_contours(main_contours, original):
@@ -317,10 +335,11 @@ def fix_contours(main_contours, original):
             )
             # pdb.set_trace()
             if scission_point is not None:
-                cv = plot_points(enriched_contour, contour, middle_point)
+                cv = plot_points(enriched_contour, middle_point)
                 extrapolated_point = find_extrapolation(middle_point, scission_point, max_side_length)
+                clean_contour = from_enriched_to_regular(enriched_contour)
                 # new_contours, intersection_point = split_contour(contour, extrapolated_point, scission_point, middle_point, original, cv)
-                new_contours, intersection_point = split_contour(contour, extrapolated_point, scission_point, middle_point, original)
+                new_contours, intersection_point = split_contour(clean_contour, extrapolated_point, scission_point, middle_point, original)
             else:
                 # new_contours has to be a list - in this case, it's a list of 1 single element
                 new_contours = [contour]
