@@ -1,6 +1,5 @@
 from transfo import *
 from contour import *
-from testing import *
 from constant import *
 
 # import cv2

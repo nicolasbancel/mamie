@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import argparse
 import cv2 as cv2
-import constant
+from constant import *
 
 # parser = argparse.ArgumentParser(description="Code for Canny Edge Detector tutorial.")
 # parser.add_argument("--input", help="Path to input image.", default="mamie0037.jpg")
@@ -14,8 +14,6 @@ import constant
 
 
 def load_original(file_name):
-
-    MOSAIC_DIR = "/Users/nicolasbancel/git/perso/mamie/data/mosaic/"
     # mosaic_dir = os.path.join(Path.cwd().parent, "data/mosaic/")
     # first_file = os.path.join(constant.MOSAIC_DIR, file_name)
     # print(first_file)

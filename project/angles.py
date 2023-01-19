@@ -62,6 +62,8 @@ def enrich_contour_info(contour, angles_degrees, alengths, blengths, exclude_bad
     scission_dict = dict()
     scission_information = []
 
+    area = cv2.contourArea(contour)
+
     # set_trace()
 
     for index, point in enumerate(contour_):
@@ -72,7 +74,8 @@ def enrich_contour_info(contour, angles_degrees, alengths, blengths, exclude_bad
         # Index -1 is to determine if this is a good point, a scission point, or a bad point
         length_thresh = max_side_length * THRESHOLD
         if angle < SMALL_ANGLE_THRESH:
-            if a_line > length_thresh and b_line > length_thresh:
+            if a_line > length_thresh and b_line > length_thresh and area > MAX_AREA_THRESHOLD:
+                # Long line with small angles on a small area are now considered bad points
                 contour_[index][-1] = "scission"
             else:
                 contour_[index][-1] = "bad"
@@ -162,7 +165,8 @@ def plot_points(enriched_contour, middle_point):
         else:
             cv2.circle(cv, center=tuple(contour[i]), radius=20, color=(0, 1, 0), thickness=cv2.FILLED)
     # This prints the point which is in the middle of the 2 scission points
-    cv2.circle(cv, center=tuple(middle_point), radius=20, color=(42, 35, 9), thickness=cv2.FILLED)
+    if middle_point is not None:
+        cv2.circle(cv, center=tuple(middle_point), radius=20, color=(42, 35, 9), thickness=cv2.FILLED)
 
     # UNCOMMENT FOR TESTING
     # show("Canvas", cv)
@@ -322,39 +326,41 @@ def fix_contours(main_contours, original):
 
     for contour in main_contours:
         contour_area = cv2.contourArea(contour)
-        if contour_area > MAX_AREA_THRESHOLD:
-            cv2.drawContours(test, [contour], -1, (0, 255, 0), 40)
-            # UNCOMMENT FOR TESTING
-            # show("Contour", test)
-
-            # GETTING ANGLES
-            angles_degrees, alengths, blengths = get_angles(contour)
-            # plot_angles(contour, angles_degrees)
-            enriched_contour, scission_information, middle_point, scission_point, max_side_length = enrich_contour_info(
-                contour, angles_degrees, alengths, blengths
-            )
-            # pdb.set_trace()
-            if scission_point is not None:
-                cv = plot_points(enriched_contour, middle_point)
-                extrapolated_point = find_extrapolation(middle_point, scission_point, max_side_length)
-                clean_contour = from_enriched_to_regular(enriched_contour)
-                # new_contours, intersection_point = split_contour(contour, extrapolated_point, scission_point, middle_point, original, cv)
-                new_contours, intersection_point = split_contour(clean_contour, extrapolated_point, scission_point, middle_point, original)
-            else:
-                # new_contours has to be a list - in this case, it's a list of 1 single element
-                new_contours = [contour]
-            for cont in new_contours:
-                # print(f"Contour is too big - color index = {color_index}")
-                final_contours.append(cont)
-                draw(final_image, cont, color_index)
-                color_index += 1
-        elif contour_area > MIN_AREA_THRESHOLD and contour_area <= MAX_AREA_THRESHOLD:
+        # print(contour_area, f"vs {MAX_AREA_THRESHOLD}")
+        cv2.drawContours(test, [contour], -1, (0, 255, 0), 40)
+        # UNCOMMENT FOR TESTING
+        # show("Contour", test)
+        # GETTING ANGLES
+        angles_degrees, alengths, blengths = get_angles(contour)
+        # print(f"Number of points in contour : {len(contour)}")
+        # print(angles_degrees)
+        # plot_angles(contour, angles_degrees)
+        enriched_contour, scission_information, middle_point, scission_point, max_side_length = enrich_contour_info(contour, angles_degrees, alengths, blengths)
+        cv = plot_points(enriched_contour, middle_point)
+        if scission_point is not None:
+            # print("Contour needs to be splitted")
+            extrapolated_point = find_extrapolation(middle_point, scission_point, max_side_length)
+            clean_contour = from_enriched_to_regular(enriched_contour)
+            new_contours, intersection_point = split_contour(clean_contour, extrapolated_point, scission_point, middle_point, original)
+        else:
             # print(f"Contour has good shape - no need for split - color index = {color_index}")
             # Reduce size of contour
-            contour = contour[:, 0, :]
-            final_contours.append(contour)
-            draw(final_image, contour, color_index)
+            # new_contours has to be a list - in this case, it's a list of 1 single element
+            clean_contour = from_enriched_to_regular(enriched_contour)
+            # At least, it removes the bad points
+            new_contours = [clean_contour]
+        for cont in new_contours:
+            # print(f"Contour is too big - color index = {color_index}")
+            final_contours.append(cont)
+            draw(final_image, cont, color_index)
             color_index += 1
+        # elif contour_area > MIN_AREA_THRESHOLD and contour_area <= MAX_AREA_THRESHOLD:
+        # print(f"Contour has good shape - no need for split - color index = {color_index}")
+        # Reduce size of contour
+        # contour = contour[:, 0, :]
+        # final_contours.append(contour)
+        # draw(final_image, contour, color_index)
+        # color_index += 1
 
     # UNCOMMENT FOR TESTING
     # show("Final contours", final_image)

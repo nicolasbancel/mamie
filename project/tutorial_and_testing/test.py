@@ -31,18 +31,14 @@ original = load_original(file_name)
 rectangles = whiten_edges(original)
 borders = add_borders(rectangles, show_image=True)
 grey = grey_original(borders, show_image=True)
-ret, thresh = build_threshold(
-    grey, constant.THRESH_MIN, constant.THESH_MAX, cv2.THRESH_BINARY_INV, True
-)
+ret, thresh = build_threshold(grey, constant.THRESH_MIN, constant.THESH_MAX, cv2.THRESH_BINARY_INV, True)
 
 #############################################
 # FONCTION DEFINITIONS - THRESHOLDS
 #############################################
 
 
-def multiple_transformations_tresholding_more(
-    img_grey, file_name, THRESH_MIN=250, THESH_MAX=255
-):
+def multiple_transformations_tresholding_more(img_grey, file_name, THRESH_MIN=250, THESH_MAX=255):
     # THRESH_MIN = 250
     # THESH_MAX = 255
     ret, thresh1 = cv2.threshold(img_grey, THRESH_MIN, THESH_MAX, cv2.THRESH_BINARY)
@@ -54,12 +50,8 @@ def multiple_transformations_tresholding_more(
 
     ## Additions (for test)
 
-    thresh7 = cv2.adaptiveThreshold(
-        img_grey, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2
-    )
-    thresh8 = cv2.adaptiveThreshold(
-        img_grey, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
-    )
+    thresh7 = cv2.adaptiveThreshold(img_grey, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)
+    thresh8 = cv2.adaptiveThreshold(img_grey, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
 
     ret, thresh9 = cv2.threshold(img_grey, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
@@ -111,6 +103,4 @@ def multiple_transformations_tresholding_more(
 # EXECUTION
 #############################################
 
-multiple_transformations_tresholding_more(
-    grey, file_name, THRESH_MIN=250, THESH_MAX=255
-)
+multiple_transformations_tresholding_more(grey, file_name, THRESH_MIN=250, THESH_MAX=255)
