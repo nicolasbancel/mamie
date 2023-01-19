@@ -99,12 +99,15 @@ def show(title, image):
     cv2.waitKey(1)
 
 
+"""
+Deprecated - this is confusing (and not bringing much value)
 def write(filename, image, folder="processing"):
     # writing in subfolder images
     full_folder = "images/" + folder + "/"
     full_path = full_folder + filename
     print(full_path)
     cv2.imwrite(full_path, image)
+"""
 
 
 def multiple_transformations_tresholding(img_grey, file_name, THRESH_MIN=250, THESH_MAX=250):

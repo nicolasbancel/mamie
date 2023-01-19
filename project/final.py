@@ -4,8 +4,10 @@ from constant import *
 from utils import *
 from angles import *
 from typing import Literal
+from export import *
 import argparse
 import pdb
+from datetime import datetime
 
 #############################################
 # Image
@@ -31,7 +33,7 @@ import pdb
 #############################################
 
 
-def final_steps(picture_name, THRESH_MIN, THESH_MAX, export: Literal["all", "fail_only"] = "fail_only"):
+def final_steps(picture_name, THRESH_MIN, THESH_MAX, export: Literal["all", "fail_only", "none"] = "fail_only"):
     MAPPING_DICT = num_pictures_per_mosaic(filename="pictures_per_mosaic.csv")
     true_num_pictures = int(MAPPING_DICT[picture_name])
     original = load_original(picture_name)
@@ -42,7 +44,7 @@ def final_steps(picture_name, THRESH_MIN, THESH_MAX, export: Literal["all", "fai
     img_blur = cv2.GaussianBlur(img_grey, (3, 3), 0)
     thresh = cv2.threshold(img_blur, THRESH_MIN, THESH_MAX, cv2.THRESH_BINARY_INV)[1]
     contours, _ = find_contours(source=thresh)
-    original_with_main_contours, main_contours, keyboard, message = draw_main_contours(
+    original_w_main_contours, main_contours, keyboard, message = draw_main_contours(
         original,
         contours,
         contour_size=40,
@@ -52,7 +54,7 @@ def final_steps(picture_name, THRESH_MIN, THESH_MAX, export: Literal["all", "fai
         show_image=False,
     )
 
-    final_contours, split_contours = fix_contours(main_contours, original)
+    final_contours, original_w_final_contours = fix_contours(main_contours, original)
     num_contours = len(final_contours)
     num_points_per_contour = [len(cont) for cont in final_contours]
     # inc represents the number of contours that have more than 6 points
@@ -85,8 +87,8 @@ def final_steps(picture_name, THRESH_MIN, THESH_MAX, export: Literal["all", "fai
     message["num_contours_after_split"] = num_contours
     message["num_points_per_contour"] = num_points_per_contour
 
-    list_images = [original, img_blur, thresh, original_with_main_contours, split_contours]
-    list_labels = ["Original", "Blurred", "Threshold", "Original w contours", "Original w splitted contours"]
+    list_images = [original, img_blur, thresh, original_w_main_contours, original_w_final_contours]
+    list_labels = ["Original", "Blurred", "Threshold", "Original w contours", "Original w final contours"]
 
     # list_images = [original, img_grey, img_blur, thresh, original_with_main_contours]
     # list_labels = ["Original", "Grey", "Blurred", "Threshold", "Original w contours"]
@@ -94,21 +96,33 @@ def final_steps(picture_name, THRESH_MIN, THESH_MAX, export: Literal["all", "fai
     final = stack_images(list_labels, list_images, message, num_columns=4)
     # show("Final", final)
 
-    if message["success"] == True:
+    success = message["success"]
+
+    output(original, picture_name, final_contours, success)
+
+    if export == "none":
+        pass
+
+    if success == True:
         if export == "all":
             success_path = CONTOURED_DIR + "success/" + picture_name
-            print(success_path)
+            # print(success_path)
             cv2.imwrite(success_path, final)
     else:
         if export == "all" or "fail_only":
             failure_path = CONTOURED_DIR + "failure/" + picture_name
-            print(success_path)
+            # print(failure_path)
             cv2.imwrite(failure_path, final)
 
-    return original, original_with_main_contours, main_contours, final_contours, message
+    return original, original_w_main_contours, original_w_final_contours, main_contours, final_contours, message
 
 
 if __name__ == "__main__":
+
+    # Example of execution plan
+    # python3 final.py -n 20 OR
+    # python3 final.py OR
+    # python3 final.py -i "mamie0001.jpg"
 
     ap = argparse.ArgumentParser()
     ap.add_argument("-i", "--image", required=False, help="Name of image - located in mosaic dir")
@@ -147,7 +161,10 @@ if __name__ == "__main__":
         # Enables :
         # python3 final.py -i "mamie0001.jpg" to work and display only 1 image
         # python3 final.py -i "mamie0008.jpg"
-        original, original_with_main_contours, main_contours, final_contours, message = final_steps(args["image"], THRESH_MIN, THESH_MAX, export="all")
+        original, original_w_main_contours, original_w_final_contours, main_contours, final_contours, message = final_steps(
+            args["image"], THRESH_MIN, THESH_MAX, export="all"
+        )
+
         # pdb.set_trace()
     else:
         "Iterate through all images + log in the results.csv file"
@@ -159,15 +176,19 @@ if __name__ == "__main__":
             print(f"Will process images from index 0 until {args['num_mosaics'] - 1}")
             mosaics_to_process = sorted(os.listdir(MOSAIC_DIR))[: args["num_mosaics"]]
         for file in mosaics_to_process:
+            now = datetime.now()
+            dt = now.strftime("%H:%M:%S")
             filename = os.fsdecode(file)
             if filename.endswith(".jpg") or filename.endswith(".png"):
-                print(f"\n Extracting contours of file : {filename} \n")
-                original, original_with_main_contours, main_contours, final_contours, message = final_steps(filename, THRESH_MIN, THESH_MAX, export="all")
+                print(f"\n Time is : {dt} - Extracting contours of file : {filename} \n")
+                original, original_w_main_contours, original_w_final_contours, main_contours, final_contours, message = final_steps(
+                    filename, THRESH_MIN, THESH_MAX, export="all"
+                )
                 for key in set(FINAL_MESSAGE) - {"config_num"}:
                     FINAL_MESSAGE[key].append(message[key])
                 FINAL_MESSAGE["config_num"].append(CONFIG_NUM)
             else:
-                print("Else")
+                print(f"\n Time is : {dt} - Ignore - {filename} is not a picture file \n")
                 continue
 
         log_results(FINAL_MESSAGE)

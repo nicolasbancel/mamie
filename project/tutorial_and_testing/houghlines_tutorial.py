@@ -91,4 +91,5 @@ for line in main_lines:
     cv2.line(original_lines, line[0], line[1], (0, 0, 255), 4)
 
 show("Original with lines", original_lines)
-write("lines_thresh100_mamie0037.jpg", original_lines, folder="processing/lines_tutorial")
+# write from transfo file is deprecated
+# write("lines_thresh100_mamie0037.jpg", original_lines, folder="processing/lines_tutorial")

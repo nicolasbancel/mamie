@@ -124,7 +124,8 @@ def test_threshold(picture_name, method="bilateral", show_image=True):
         labels = ["Adaptive - Mean - Blurred", "Adaptive - Gaussian - Blurred", "Adaptive - Mean - Origin", "Adaptive - Gaussian - Origin"]
         stacked = label_stack(stacked, img_grey, labels, blackwhite=True)
 
-        write(f"adaptive_thresholds_{picture_name}", stacked, folder="processing")
+        # write (from transfo) is deprecated
+        # write(f"adaptive_thresholds_{picture_name}", stacked, folder="processing")
 
         if show_image:
             show("Stacked", stacked)
