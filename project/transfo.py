@@ -19,6 +19,7 @@ def load_original(file_name):
     # print(first_file)
     # print(f"The mosaic directory is : {constant.MOSAIC_DIR}")
     # print(f"The other mosaic directory is : {constant.MOSAIC_DIR_OTHER}")
+    # print(MOSAIC_DIR)
     file_path = os.path.join(MOSAIC_DIR, file_name)
     original = cv2.imread(file_path)
     return original

@@ -127,6 +127,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("-i", "--image", required=False, help="Name of image - located in mosaic dir")
     ap.add_argument("-n", "--num_mosaics", required=False, type=int, help="Number of mosaics to process")
+    ap.add_argument("-log", "--log_results", required=False, nargs="?", const=False, help="Whether or not results should be logged in results.csv")
     args = vars(ap.parse_args())
 
     # print(args["image"])
@@ -190,5 +191,6 @@ if __name__ == "__main__":
             else:
                 print(f"\n Time is : {dt} - Ignore - {filename} is not a picture file \n")
                 continue
-
-        log_results(FINAL_MESSAGE)
+        # print(args["log_results"]) is None when not provided
+        if args["log_results"] == True:
+            log_results(FINAL_MESSAGE)
