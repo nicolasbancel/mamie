@@ -47,17 +47,26 @@ def warpAffine_contour(original, contour, show_image=False):
     target_bottomleft = [offset, offset + height_int]
 
     # Understand order in which rectangle points are ordered
-
+    # target_topleft -> target_topright corresponds to ta width
+    # target_topright -> target_bottomright corresponds to a height
     first_point = feature_points[0]
     second_point = feature_points[1]
     third_point = feature_points[2]
     fourth_point = feature_points[3]
 
+    dist_01 = int(euc_dist(first_point, second_point))
+    dist_12 = int(euc_dist(second_point, third_point))
+    dist_23 = int(euc_dist(third_point, fourth_point))
+    dist_30 = int(euc_dist(fourth_point, first_point))
+
     # Make the target contour match the order of points of the source contour
-    if int(euc_dist(first_point, second_point)) == width_int or int(euc_dist(third_point, fourth_point)) == width_int:
+    if dist_01 == width_int or dist_23 == width_int:
         warped_feature_points_int = np.array([target_topleft, target_topright, target_bottomright, target_bottomleft])
-    elif int(euc_dist(second_point, third_point)) == height_int or int(euc_dist(fourth_point, first_point)) == height_int:
+    elif dist_01 == height_int or dist_23 == height_int:
         warped_feature_points_int = np.array([target_topright, target_bottomright, target_bottomleft, target_topleft])
+    else:
+        warped_feature_points_int = None
+        print(f"Width = {width_int} // Height = {height_int}\ndist_12 : {dist_12} - dist_34 : {dist_34}\ndist_23 : {dist_23} - dist_41 : {dist_41}")
 
     if show_image:
         copy = original.copy()
@@ -245,9 +254,14 @@ def output(original, picture_name, contours: list, success: bool):
     if success == True:
 
         for idx, contour in enumerate(contours):
+
+            # Option : before wrap
             # output_img = extract_contour(original, contour)
-            # output_img = warpPerspective_contour(original, contour)
+
             output_img = warpAffine_contour(original, contour)
+
+            # Option below looses quality
+            # output_img = warpPerspective_contour(original, contour)
             # in case picture_name is provided as a path
             # filename = Path(picture_name).stem
             # pdb.set_trace()

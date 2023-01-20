@@ -162,7 +162,8 @@ if __name__ == "__main__":
         original, original_w_main_contours, original_w_final_contours, main_contours, final_contours, message = final_steps(
             picture_name, THRESH_MIN, THESH_MAX, export="all"
         )
-
+        success = message["success"]
+        output(original, picture_name, final_contours, success)
         # pdb.set_trace()
     else:
         "Iterate through all images + log in the results.csv file"
