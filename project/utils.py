@@ -24,20 +24,23 @@ def num_pictures_per_mosaic(filename="pictures_per_mosaic.csv"):
     return mapping
 
 
-def draw(img, contour, color_index=0, show_points=True):
+def draw(img, contour, color_index=0, show_points=True, show_index=False, legend: list = []):
     """
-    This function does NOT impact img - it simply display on top of a duplicate
+    This function DOES impact img - it simply display on top of a duplicate
+    Font scale of 4 is good (8 is way too big)
     """
-    # List of colors : BGR
-    # Green, Red, Blue, Yellow, Cyan, Magenta
-    color_list = [(0, 255, 0), (0, 0, 255), (255, 0, 0), (0, 255, 255), (255, 255, 0), (255, 0, 255)]
     point_color = (0, 0, 0)
-
+    if legend is None:
+        legend = []
     # img_copy = img.copy()
-    cv2.drawContours(img, [contour], -1, color_list[color_index], 40)
+    cv2.drawContours(img, [contour], -1, COLOR_LIST[color_index], 40)
     if show_points:
-        for point in contour:
+        for idx, point in enumerate(contour):
             cv2.circle(img, center=tuple(point), radius=20, color=point_color, thickness=cv2.FILLED)
+            if show_index:
+                cv2.putText(img, f"{idx} - {tuple(point)}", (5 + point[0], 5 + point[1]), cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 0, 255), 12, cv2.LINE_AA)
+            if len(legend) > 0:
+                cv2.putText(img, f"Legend: {legend[idx]}", (5 + point[0], 150 + point[1]), cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 0, 255), 12, cv2.LINE_AA)
 
 
 def stack_images(list_labels, list_images, message, num_columns=4):

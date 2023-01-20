@@ -42,7 +42,10 @@ morph_operator = morph_op_dic[0]
 morph_elem = morph_op_dic[0]
 
 
-###
+# List of colors : BGR
+# List of good colors to print contours with
+# Green, Red, Blue, Yellow, Cyan, Magenta
+COLOR_LIST = [(0, 255, 0), (0, 0, 255), (255, 0, 0), (0, 255, 255), (255, 255, 0), (255, 0, 255)]
 
 
 PROJECT_DIR = "/Users/nicolasbancel/git/perso/mamie/project/"

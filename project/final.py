@@ -69,6 +69,8 @@ def final_steps(picture_name, THRESH_MIN, THESH_MAX, export: Literal["all", "fai
     else:
         message["success"] = False
 
+    success = message["success"]
+
     # pdb.set_trace()
     message["picture_name"] = picture_name
     message["rm_black_edges"] = True
@@ -95,13 +97,6 @@ def final_steps(picture_name, THRESH_MIN, THESH_MAX, export: Literal["all", "fai
 
     final = stack_images(list_labels, list_images, message, num_columns=4)
     # show("Final", final)
-
-    success = message["success"]
-
-    output(original, picture_name, final_contours, success)
-
-    if export == "none":
-        pass
 
     if success == True:
         if export == "all":
@@ -158,12 +153,14 @@ if __name__ == "__main__":
         "config_num": [],
     }
 
-    if args["image"] is not None:
+    picture_name = args["image"]
+
+    if picture_name is not None:
         # Enables :
         # python3 final.py -i "mamie0001.jpg" to work and display only 1 image
         # python3 final.py -i "mamie0008.jpg"
         original, original_w_main_contours, original_w_final_contours, main_contours, final_contours, message = final_steps(
-            args["image"], THRESH_MIN, THESH_MAX, export="all"
+            picture_name, THRESH_MIN, THESH_MAX, export="all"
         )
 
         # pdb.set_trace()
@@ -185,6 +182,9 @@ if __name__ == "__main__":
                 original, original_w_main_contours, original_w_final_contours, main_contours, final_contours, message = final_steps(
                     filename, THRESH_MIN, THESH_MAX, export="all"
                 )
+                success = message["success"]
+                output(original, picture_name, final_contours, success)
+
                 for key in set(FINAL_MESSAGE) - {"config_num"}:
                     FINAL_MESSAGE[key].append(message[key])
                 FINAL_MESSAGE["config_num"].append(CONFIG_NUM)
