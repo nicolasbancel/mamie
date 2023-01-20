@@ -62,8 +62,10 @@ class Picture:
             faces_area.append(w * h)
             cv2.rectangle(rotated_cv_copy, (x, y), (x + w, y + h), (0, 255, 0), 2)
             cv2.circle(rotated_cv_copy, (x + int(w * 0.5), y + int(h * 0.5)), 4, (0, 255, 0), -1)
-        cv2.putText(rotated_cv_copy, f"Log of rotation {k} * 90°", org=(50, 50), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=4, color=(0, 0, 255), thickness=5)
-        show("Img with faces", rotated_cv_copy)
+        cv2.putText(
+            rotated_cv_copy, f"Log of rotation {k} * 90°", org=(100, 100), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=3, color=(0, 0, 255), thickness=4
+        )
+        # show("Img with faces", rotated_cv_copy)
 
         return sorted(faces_area, reverse=True)
 
@@ -86,7 +88,7 @@ class Picture:
 
         average = []
         final_face_areas = []
-        print(face_areas)
+        # print(face_areas)
         for fa in face_areas:
             if len(fa) >= 3:
                 final_fa = fa[:3]
@@ -101,7 +103,11 @@ class Picture:
                 final_face_areas.append(final_fa)
                 average.append(0)
             # if fa = [24] then completes with 3-1=2 zeros : [24, 0, 0]
-        pdb.set_trace()
+
+        index_correct_rotation = average.index(max(average))
+        correct_k = faces_areas_per_rotation["k"][index_correct_rotation]
+        self.num_needed_rot90 = correct_k
+        return correct_k
 
 
 if __name__ == "__main__":
@@ -110,4 +116,5 @@ if __name__ == "__main__":
 
     picture = Picture("mamie0008_02.jpg")
     faces_areas_per_rotation = picture.get_all_faces_areas()
-    picture.get_correct_rotation(faces_areas_per_rotation)
+    correct_k = picture.get_correct_rotation(faces_areas_per_rotation)
+    picture.rotated = picture.rotate_np(picture.num_needed_rot90)

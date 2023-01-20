@@ -3,6 +3,7 @@ from pathlib import Path
 import numpy as np
 from utils import *
 import pdb
+from Picture import *
 
 
 def extract_contour(original, contour):
@@ -68,10 +69,12 @@ def warpAffine_contour(original, contour, show_image=False):
     dist_23 = int(euc_dist(third_point, fourth_point))
     dist_30 = int(euc_dist(fourth_point, first_point))
 
+    pixel_margin = 10
+
     # Make the target contour match the order of points of the source contour
-    if dist_01 == width_int or dist_23 == width_int:
+    if width_int - pixel_margin <= dist_01 <= width_int + pixel_margin or width_int - pixel_margin <= dist_23 <= width_int + pixel_margin:
         warped_feature_points_int = np.array([target_topleft, target_topright, target_bottomright, target_bottomleft])
-    elif dist_01 == height_int or dist_23 == height_int:
+    elif height_int - pixel_margin <= dist_01 <= height_int + pixel_margin or height_int - pixel_margin <= dist_23 <= height_int + pixel_margin:
         warped_feature_points_int = np.array([target_topright, target_bottomright, target_bottomleft, target_topleft])
     else:
         warped_feature_points_int = None
