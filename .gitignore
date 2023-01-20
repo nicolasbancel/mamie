@@ -4,5 +4,5 @@ __pycache__/
 *.png
 *.jpg
 *.jpeg
-
+*.xml
 .env
