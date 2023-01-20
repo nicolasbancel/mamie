@@ -50,9 +50,12 @@ POINT_COLOR = (0, 0, 0)
 
 PROJECT_DIR = "/Users/nicolasbancel/git/perso/mamie/project/"
 
-MOSAIC_DIR = "/Users/nicolasbancel/git/perso/mamie/data/mosaic/source"
+SOURCE_DIR = "/Users/nicolasbancel/git/perso/mamie/data/mosaic/source"
 CONTOURED_DIR = "/Users/nicolasbancel/git/perso/mamie/data/mosaic/contoured/"
 CROPPED_DIR = "/Users/nicolasbancel/git/perso/mamie/data/mosaic/cropped/"
+
+OPENCV_DATA_DIR = "/Users/nicolasbancel/git/perso/mamie/data/opencv/"
+
 # MOSAIC_DIR = os.path.join(Path.cwd().parent, "data/mosaic/")
 # print(f"The mosaic directory is : {MOSAIC_DIR}")
 # MOSAIC_DIR_OTHER = os.path.join(Path(os.path.abspath(os.curdir)).parent, "data/mosaic/")

@@ -25,6 +25,15 @@ def euc_dist(point1: tuple, point2: tuple):
     return np.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2)
 
 
+def warpAffine_contour_tobeexplored(original, contour):
+    """
+    https://github.com/sbrunner/deskew
+    Should explore approach with getRotationMatrix2D
+    Which was the original approach but couldn't fit in a rectangle
+    """
+    pass
+
+
 def warpAffine_contour(original, contour, show_image=False):
     """
     A lot inspired from : https://github.com/sebastiengilbert73/tutorial_affine_perspective/blob/main/compute_transforms.py
