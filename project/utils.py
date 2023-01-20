@@ -29,14 +29,13 @@ def draw(img, contour, color_index=0, show_points=True, show_index=False, legend
     This function DOES impact img - it simply display on top of a duplicate
     Font scale of 4 is good (8 is way too big)
     """
-    point_color = (0, 0, 0)
     if legend is None:
         legend = []
     # img_copy = img.copy()
     cv2.drawContours(img, [contour], -1, COLOR_LIST[color_index], 40)
     if show_points:
         for idx, point in enumerate(contour):
-            cv2.circle(img, center=tuple(point), radius=20, color=point_color, thickness=cv2.FILLED)
+            cv2.circle(img, center=tuple(point), radius=20, color=POINT_COLOR, thickness=cv2.FILLED)
             if show_index:
                 cv2.putText(img, f"{idx} - {tuple(point)}", (5 + point[0], 5 + point[1]), cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 0, 255), 12, cv2.LINE_AA)
             if len(legend) > 0:
