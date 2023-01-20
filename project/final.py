@@ -183,7 +183,8 @@ if __name__ == "__main__":
                     filename, THRESH_MIN, THESH_MAX, export="all"
                 )
                 success = message["success"]
-                output(original, picture_name, final_contours, success)
+
+                output(original, filename, final_contours, success)
 
                 for key in set(FINAL_MESSAGE) - {"config_num"}:
                     FINAL_MESSAGE[key].append(message[key])

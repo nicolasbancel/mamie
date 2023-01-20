@@ -2,13 +2,14 @@ from constant import *
 from pathlib import Path
 import numpy as np
 from utils import *
+import pdb
 
 
 def extract_contour(original, contour):
     # print(f"Printing contour # {idx + 1}")
     mask = np.zeros_like(original)
     # List of 1 element. Index -1 is for printing "all" elements of that list
-    # cv2.drawContours(mask, [contour], -1, (255, 255, 255), -1)
+    cv2.drawContours(mask, [contour], -1, (255, 255, 255), -1)
     out = np.zeros_like(original)
     out[mask == 255] = original[mask == 255]
     # show("out", out)
@@ -16,8 +17,8 @@ def extract_contour(original, contour):
     (y, x, z) = np.where(mask == 255)
     (topy, topx) = (np.min(y), np.min(x))
     (bottomy, bottomx) = (np.max(y), np.max(x))
-    output = out[topy : bottomy + 1, topx : bottomx + 1]
-    return output
+    output_img = out[topy : bottomy + 1, topx : bottomx + 1]
+    return output_img
 
 
 def rotate_contour(original, contour):
@@ -80,7 +81,7 @@ def rotate_contour(original, contour):
     converted_points = np.float32([[0, 0], [max_width, 0], [0, max_height], [max_width, max_height]])
 
     matrix = cv2.getPerspectiveTransform(input_points, converted_points)
-    output = cv2.warpPerspective(original, matrix, (max_width, max_height))
+    output_img = cv2.warpPerspective(original, matrix, (max_width, max_height))
 
     # show("Output Perspective", img_output)
 
@@ -106,7 +107,7 @@ def rotate_contour(original, contour):
     pass
     """
 
-    return output
+    return output_img
 
 
 def draw_rectangle_box(img, contour, rectangle):
@@ -140,9 +141,11 @@ def output(original, picture_name, contours: list, success: bool):
     if success == True:
 
         for idx, contour in enumerate(contours):
-            output = rotate_contour(original, contour)
+            output_img = extract_contour(original, contour)
+            # output_img = rotate_contour(original, contour)
             # in case picture_name is provided as a path
             # filename = Path(picture_name).stem
+            # pdb.set_trace()
             (filename, extension) = picture_name.split(".")
             if idx + 1 < 10:
                 suffix = "_0" + str(idx + 1)
@@ -151,7 +154,7 @@ def output(original, picture_name, contours: list, success: bool):
             new_filename = filename + suffix + "." + extension
             path = os.path.join(CROPPED_DIR, new_filename)
 
-            cv2.imwrite(path, output)
+            cv2.imwrite(path, output_img)
 
 
 if __name__ == "__main__":
