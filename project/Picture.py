@@ -65,7 +65,7 @@ class Picture:
 
         show("Img with faces", rotated_cv_copy)
 
-        return faces_area
+        return sorted(faces_area, reverse=True)
 
     def get_correct_rotation(self):
         summary = {"k": [], "rotation": [], "areas": []}
