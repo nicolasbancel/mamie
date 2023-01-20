@@ -71,7 +71,11 @@ def final_steps(picture_name, THRESH_MIN, THESH_MAX, export: Literal["all", "fai
 
     success = message["success"]
 
+    now = datetime.now()
+    dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+
     # pdb.set_trace()
+    message["execution_time"] = dt_string
     message["picture_name"] = picture_name
     message["rm_black_edges"] = True
     message["add_white_margin"] = True
@@ -117,7 +121,8 @@ if __name__ == "__main__":
     # Example of execution plan
     # python3 final.py -n 20 OR
     # python3 final.py OR
-    # python3 final.py -i "mamie0001.jpg"
+    # python3 final.py -i "mamie0001.jpg" OR
+    # python3 final.py -log True
 
     ap = argparse.ArgumentParser()
     ap.add_argument("-i", "--image", required=False, help="Name of image - located in mosaic dir")
@@ -130,6 +135,7 @@ if __name__ == "__main__":
 
     CONFIG_NUM = config_num()
     FINAL_MESSAGE = {
+        "execution_time": [],
         "total_num_contours": [],
         "num_biggest_contours": [],
         "num_rectangles_before_split": [],
@@ -167,13 +173,13 @@ if __name__ == "__main__":
         # pdb.set_trace()
     else:
         "Iterate through all images + log in the results.csv file"
-        # for file in os.listdir(MOSAIC_DIR)[6:12]:
+        # for file in os.listdir(SOURCE_DIR)[6:12]:
         if args["num_mosaics"] is None:
             # print(f"Will process all images")
-            mosaics_to_process = sorted(os.listdir(MOSAIC_DIR))
+            mosaics_to_process = sorted(os.listdir(SOURCE_DIR))
         else:
             print(f"Will process images from index 0 until {args['num_mosaics'] - 1}")
-            mosaics_to_process = sorted(os.listdir(MOSAIC_DIR))[: args["num_mosaics"]]
+            mosaics_to_process = sorted(os.listdir(SOURCE_DIR))[: args["num_mosaics"]]
         for file in mosaics_to_process:
             now = datetime.now()
             dt = now.strftime("%H:%M:%S")

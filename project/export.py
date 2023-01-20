@@ -75,7 +75,7 @@ def warpAffine_contour(original, contour, show_image=False):
         warped_feature_points_int = np.array([target_topright, target_bottomright, target_bottomleft, target_topleft])
     else:
         warped_feature_points_int = None
-        print(f"Width = {width_int} // Height = {height_int}\ndist_12 : {dist_12} - dist_34 : {dist_34}\ndist_23 : {dist_23} - dist_41 : {dist_41}")
+        print(f"Width = {width_int} // Height = {height_int}\ndist_01 : {dist_01} - dist_12 : {dist_12}\ndist_23 : {dist_23} - dist_30 : {dist_30}")
 
     if show_image:
         copy = original.copy()
