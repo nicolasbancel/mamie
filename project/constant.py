@@ -53,6 +53,7 @@ PROJECT_DIR = "/Users/nicolasbancel/git/perso/mamie/project/"
 SOURCE_DIR = "/Users/nicolasbancel/git/perso/mamie/data/mosaic/source"
 CONTOURED_DIR = "/Users/nicolasbancel/git/perso/mamie/data/mosaic/contoured/"
 CROPPED_DIR = "/Users/nicolasbancel/git/perso/mamie/data/mosaic/cropped/"
+ROTATED_DIR = "/Users/nicolasbancel/git/perso/mamie/data/mosaic/rotated/"
 
 OPENCV_DATA_DIR = "/Users/nicolasbancel/git/perso/mamie/data/opencv/"
 

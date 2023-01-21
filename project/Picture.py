@@ -9,9 +9,15 @@ import pdb
 
 
 class Picture:
-    def __init__(self, picture_name):
+    def __init__(self, picture_name=None, cv2_array=None):
         self.picture_name = picture_name
-        self.img = load_original(picture_name, dir="cropped")
+        """
+        if picture_name is not None:
+            self.img = load_original(picture_name, dir="cropped")
+        else:
+            self.img = cv2_array
+        """
+        self.img = cv2_array if cv2_array is not None else load_original(picture_name, dir="cropped")
         self.face_cascade = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_frontalface_default.xml"))
         # self.eye_cascade = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_eye.xml"))
 
@@ -95,7 +101,9 @@ class Picture:
                 final_face_areas.append(final_fa)
                 average.append(sum(final_fa) / len(final_fa))
             elif len(fa) >= 1 and len(fa) < 3:
-                final_fa = fa.extend([0] * (3 - len(fa)))
+                # pdb.set_trace()
+                fa.extend([0] * (3 - len(fa)))
+                final_fa = fa.copy()
                 final_face_areas.append(final_fa)
                 average.append(sum(final_fa) / len(final_fa))
             else:
@@ -109,12 +117,28 @@ class Picture:
         self.num_needed_rot90 = correct_k
         return correct_k
 
+    def rotate_image(self):
+        faces_areas_per_rotation = self.get_all_faces_areas()
+        self.get_correct_rotation(faces_areas_per_rotation)
+        self.img_rotated = self.rotate_np(self.num_needed_rot90)
+        return self.img_rotated
+
 
 if __name__ == "__main__":
     # in ipython :
     from Picture import *
 
-    picture = Picture("mamie0008_02.jpg")
-    faces_areas_per_rotation = picture.get_all_faces_areas()
-    correct_k = picture.get_correct_rotation(faces_areas_per_rotation)
-    picture.rotated = picture.rotate_np(picture.num_needed_rot90)
+    # Or loading from cv2 array
+    # image_mamie = load_original("mamie0009.jpg", dir='source')
+    # picture = Picture(cv2_array = image_mamie)
+
+    # picture = Picture("mamie0008_02.jpg") # No rotation needed
+    picture = Picture(picture_name="mamie0009_03.jpg")  # 90d needed
+    picture.rotate_image()
+    show("Rotated", picture.img_rotated)
+
+    # picture.num_needed_rot90
+
+    # faces_areas_per_rotation = picture.get_all_faces_areas()
+    # correct_k = picture.get_correct_rotation(faces_areas_per_rotation)
+    # picture.rotated = picture.rotate_np(picture.num_needed_rot90)
