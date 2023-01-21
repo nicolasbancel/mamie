@@ -56,7 +56,8 @@ class Picture:
         rotated = self.rotate_np(k)
         # rotated = self.rotate_pil(rotation_angle)
         gray = cv2.cvtColor(rotated, cv2.COLOR_BGR2GRAY)
-        faces = self.face_cascade.detectMultiScale(gray, 1.1, minNeighbors=5, minSize=(60, 60))
+        # faces = self.face_cascade.detectMultiScale(gray, 1.1, minNeighbors=5, minSize=(60, 60))
+        faces = self.face_cascade.detectMultiScale(gray, 1.1, minNeighbors=5)
         x, y, w, h = 0, 0, 0, 0
 
         rotated_cv_copy = rotated.copy()
@@ -71,7 +72,7 @@ class Picture:
         cv2.putText(
             rotated_cv_copy, f"Log of rotation {k} * 90°", org=(100, 100), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=3, color=(0, 0, 255), thickness=4
         )
-        # show("Img with faces", rotated_cv_copy)
+        show("Img with faces", rotated_cv_copy)
 
         return sorted(faces_area, reverse=True)
 
@@ -125,8 +126,16 @@ class Picture:
 
 
 if __name__ == "__main__":
+
+    # mamie0010.jpg is all wrong
+
     # in ipython :
     from Picture import *
+
+    picture = Picture(picture_name="mamie0010_01.jpg")
+    picture.get_all_faces_areas()
+
+    # NEED TO DEBUG THE FACE DETECTION ALGORITHM WHICH DOES NOT WORK PROPERLY
 
     # Or loading from cv2 array
     # image_mamie = load_original("mamie0009.jpg", dir='source')
