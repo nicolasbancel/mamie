@@ -289,6 +289,7 @@ def output(original, picture_name, contours: list, success: bool):
 
             print(f"Cropping done for image: {new_filename}")
 
+            """
             # Starting the rotation
             picture = Picture(picture_name=new_filename)
             img_rotated = picture.rotate_image()
@@ -299,6 +300,7 @@ def output(original, picture_name, contours: list, success: bool):
             cv2.imwrite(rotated_path, img_rotated)
 
             print(f"Rotation done for image: {rotated_filename}")
+            """
 
 
 if __name__ == "__main__":
