@@ -57,7 +57,8 @@ class Picture:
         # rotated = self.rotate_pil(rotation_angle)
         gray = cv2.cvtColor(rotated, cv2.COLOR_BGR2GRAY)
         # faces = self.face_cascade.detectMultiScale(gray, 1.1, minNeighbors=5, minSize=(60, 60))
-        faces = self.face_cascade.detectMultiScale(gray, 1.1, minNeighbors=5)
+        # Example with mamie0010_01.jpg
+        faces = self.face_cascade.detectMultiScale(gray, 1.1, minNeighbors=5, minSize=(200, 200))
         x, y, w, h = 0, 0, 0, 0
 
         rotated_cv_copy = rotated.copy()
@@ -65,10 +66,19 @@ class Picture:
 
         faces_area = []
 
-        for (x, y, w, h) in faces:
+        for index, (x, y, w, h) in enumerate(faces):
             faces_area.append(w * h)
             cv2.rectangle(rotated_cv_copy, (x, y), (x + w, y + h), (0, 255, 0), 2)
             cv2.circle(rotated_cv_copy, (x + int(w * 0.5), y + int(h * 0.5)), 4, (0, 255, 0), -1)
+            cv2.putText(
+                rotated_cv_copy,
+                f"Face N°{index} - Dims {w}x{h}pix",
+                org=(x, y - 20),
+                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale=1,
+                color=(0, 255, 0),
+                thickness=2,
+            )
         cv2.putText(
             rotated_cv_copy, f"Log of rotation {k} * 90°", org=(100, 100), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=3, color=(0, 0, 255), thickness=4
         )

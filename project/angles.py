@@ -295,9 +295,9 @@ def split_contour(contour, extrapolated_point, scission_point, middle_point, ori
 
     # FIND THE INTERSECTION
 
-    intersections = new_line.intersection(polygon)
+    pdb.set_trace()
 
-    # pdb.set_trace()
+    intersections = new_line.intersection(polygon)
 
     # print(f"Type of the intersection : {type(intersections)}")
 
@@ -379,13 +379,17 @@ def fix_contours(main_contours, original):
         # print(angles_degrees)
         # plot_angles(contour, angles_degrees)
         enriched_contour, scission_information, middle_point, scission_point, max_side_length = enrich_contour_info(contour, angles_degrees, alengths, blengths)
+        pdb.set_trace()
         cv = plot_points(enriched_contour, scission_information)
+        show("cv", cv)
         # pdb.set_trace()
         if scission_point is not None:
             # print("Contour needs to be splitted")
             extrapolated_point = find_extrapolation(middle_point, scission_point, max_side_length)
             clean_contour = from_enriched_to_regular(enriched_contour)
             new_contours, intersection_point = split_contour(clean_contour, extrapolated_point, scission_point, middle_point, original, cv)
+            show("cv", cv)
+
         else:
             # print(f"Contour has good shape - no need for split - color index = {color_index}")
             # Reduce size of contour

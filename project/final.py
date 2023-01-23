@@ -51,7 +51,7 @@ def final_steps(picture_name, THRESH_MIN, THESH_MAX, export: Literal["all", "fai
         contours_color=(0, 255, 0),
         precision_param=0.01,
         only_rectangles=False,
-        show_image=False,
+        show_image=True,
     )
 
     final_contours, original_w_final_contours = fix_contours(main_contours, original)
@@ -176,7 +176,9 @@ if __name__ == "__main__":
         # for file in os.listdir(SOURCE_DIR)[6:12]:
         if args["num_mosaics"] is None:
             # print(f"Will process all images")
-            mosaics_to_process = sorted(os.listdir(SOURCE_DIR))
+
+            # mosaics_to_process = sorted(os.listdir(SOURCE_DIR))
+            mosaics_to_process = sorted(os.listdir(SOURCE_DIR))[67:]
         else:
             print(f"Will process images from index 0 until {args['num_mosaics'] - 1}")
             mosaics_to_process = sorted(os.listdir(SOURCE_DIR))[: args["num_mosaics"]]
