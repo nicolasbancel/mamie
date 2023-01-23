@@ -54,13 +54,10 @@ def plot_angles(contour, angles_degrees):
 
 
 def enrich_contour_info(contour, angles_degrees, alengths, blengths, exclude_bad_points=True):
-    num_point = len(contour)
+    num_points_contour = len(contour)
     max_side_length = alengths.max()
-    point_category = np.transpose([["good"] * num_point])
+    point_category = np.transpose([["good"] * num_points_contour])
     contour_ = np.hstack([contour, angles_degrees.reshape((-1, 1)), alengths.reshape((-1, 1)), blengths.reshape((-1, 1)), point_category])
-
-    scission_dict = dict()
-    scission_information = []
 
     area = cv2.contourArea(contour)
 
@@ -74,10 +71,12 @@ def enrich_contour_info(contour, angles_degrees, alengths, blengths, exclude_bad
         # Index -1 is to determine if this is a good point, a scission point, or a bad point
         length_thresh = max_side_length * THRESHOLD
         if angle < SMALL_ANGLE_THRESH:
-            if a_line > length_thresh and b_line > length_thresh and area > MAX_AREA_THRESHOLD:
+            if a_line > length_thresh and b_line > length_thresh and area > MAX_AREA_THRESHOLD and index not in (0, num_points_contour - 1):
                 # Long line with small angles on a small area are now considered bad points
                 contour_[index][-1] = "scission"
             else:
+                # First and last point of the contour cannot be scission points
+                # Since those are the extreme points of the contour (corners)
                 contour_[index][-1] = "bad"
 
     enriched_contour = []
@@ -90,6 +89,7 @@ def enrich_contour_info(contour, angles_degrees, alengths, blengths, exclude_bad
         for index, pt in enumerate(contour_):
             if pt[5] == "bad":
                 idx_to_remove.append(index)
+                # And point is not being added to enriched_contour (hence, it is removed)
             else:
                 enriched_contour.append(pt)
         # remove bad points from angle_degrees
@@ -104,25 +104,42 @@ def enrich_contour_info(contour, angles_degrees, alengths, blengths, exclude_bad
     # Depending on the above : now possible to really identify well the closest points of the scission points
     # If the scission point is surrounded by some bad points, depending on exclude_bad_points, the output will vary
 
+    # num_points is the number of points in the new contour (where the bad points may have been removed)
+    num_point = len(enriched_contour)
+
+    scission_information = []
+
+    # declaring scission_dict outside the for loop just appends the latest scission information
+    # https://stackoverflow.com/questions/35906411/list-on-python-appending-always-the-same-value
+
     for idx, element in enumerate(enriched_contour):
+        scission_dict = dict()
+        print(idx, element[5])
         point_type = element[5]
         if point_type == "scission":
+            print(scission_dict)
             x_coord = element[0]
             y_coord = element[1]
-            scission_dict["scission_point"] = list([x_coord, y_coord])
-            scission_dict["before_scission_point"] = list([enriched_contour[idx - 1][0], enriched_contour[idx - 1][1]])
-            next_idx = (idx + 1) % num_point  # If scission is at index 6 in contour of shape 7 : makes next index 0 instead of 7 (out of range)
-            scission_dict["after_scission_point"] = list([enriched_contour[next_idx][0], enriched_contour[next_idx][1]])
+            # If scission is at index 6 in contour of shape 7 : makes next index 0 instead of 7 (out of range)
+            next_idx = (idx + 1) % num_point
+            scission_dict = {
+                "scission_point": list([int(x_coord), int(y_coord)]),
+                "before_scission_point": list([int(enriched_contour[idx - 1][0]), int(enriched_contour[idx - 1][1])]),
+                "after_scission_point": list([int(enriched_contour[next_idx][0]), int(enriched_contour[next_idx][1])]),
+            }
             scission_information.append(scission_dict)
+            print(scission_information)
 
     # Capturing the scission point, once data is clean
 
     if len(scission_information) >= 1:
-        scission = scission_information[0]
-        scission_point = np.asarray(scission["scission_point"], dtype=int)
-        before = np.asarray(scission["before_scission_point"], dtype=int)
-        after = np.asarray(scission["after_scission_point"], dtype=int)
-        middle_point = [mean([before[0], after[0]]), mean([before[1], after[1]])]
+        for i in range(len(scission_information)):
+            scission = scission_information[i]
+            scission_point = np.asarray(scission["scission_point"], dtype=int)
+            before = np.asarray(scission["before_scission_point"], dtype=int)
+            after = np.asarray(scission["after_scission_point"], dtype=int)
+            middle_point = [mean([before[0], after[0]]), mean([before[1], after[1]])]
+            scission["middle_point"] = middle_point
     else:
         # This scenario can happen : when the area is identified as a very big area
         # Although there's no scission point - it's just either a big picture, or 2 pictures, parallel, which have been
@@ -131,6 +148,15 @@ def enrich_contour_info(contour, angles_degrees, alengths, blengths, exclude_bad
         scission_point = None
 
     # pdb.set_trace()
+
+    ########################################################
+    # IF TREATING ONLY 1 POINT
+    # THIS SHOULD BE REMOVED
+    ########################################################
+
+    if len(scission_information) >= 1:
+        middle_point = np.asarray(scission_information[0]["middle_point"], dtype=int)
+        scission_point = np.asarray(scission_information[0]["scission_point"], dtype=int)
 
     return enriched_contour, scission_information, middle_point, scission_point, max_side_length
 
@@ -147,7 +173,7 @@ def from_enriched_to_regular(enriched_contour):
     return contour
 
 
-def plot_points(enriched_contour, middle_point):
+def plot_points(enriched_contour, scission_information=None):
     # Shows bad points anyways since no cleaning has been done yet
     cv_rows = 6000
     cv_columns = 6000
@@ -165,8 +191,10 @@ def plot_points(enriched_contour, middle_point):
         else:
             cv2.circle(cv, center=tuple(contour[i]), radius=20, color=(0, 1, 0), thickness=cv2.FILLED)
     # This prints the point which is in the middle of the 2 scission points
-    if middle_point is not None:
-        cv2.circle(cv, center=tuple(middle_point), radius=20, color=(42, 35, 9), thickness=cv2.FILLED)
+
+    if scission_information is not None:
+        for dict in scission_information:
+            cv2.circle(cv, center=tuple(dict["middle_point"]), radius=20, color=(42, 35, 9), thickness=cv2.FILLED)
 
     # UNCOMMENT FOR TESTING
     # show("Canvas", cv)
@@ -336,7 +364,7 @@ def fix_contours(main_contours, original):
         # print(angles_degrees)
         # plot_angles(contour, angles_degrees)
         enriched_contour, scission_information, middle_point, scission_point, max_side_length = enrich_contour_info(contour, angles_degrees, alengths, blengths)
-        cv = plot_points(enriched_contour, middle_point)
+        cv = plot_points(enriched_contour, scission_information)
         if scission_point is not None:
             # print("Contour needs to be splitted")
             extrapolated_point = find_extrapolation(middle_point, scission_point, max_side_length)
