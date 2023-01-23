@@ -114,10 +114,10 @@ def enrich_contour_info(contour, angles_degrees, alengths, blengths, exclude_bad
 
     for idx, element in enumerate(enriched_contour):
         scission_dict = dict()
-        print(idx, element[5])
+        # (idx, element[5])
         point_type = element[5]
         if point_type == "scission":
-            print(scission_dict)
+            # print(scission_dict)
             x_coord = element[0]
             y_coord = element[1]
             # If scission is at index 6 in contour of shape 7 : makes next index 0 instead of 7 (out of range)
@@ -128,7 +128,7 @@ def enrich_contour_info(contour, angles_degrees, alengths, blengths, exclude_bad
                 "after_scission_point": list([int(enriched_contour[next_idx][0]), int(enriched_contour[next_idx][1])]),
             }
             scission_information.append(scission_dict)
-            print(scission_information)
+            # print(scission_information)
 
     # Capturing the scission point, once data is clean
 
@@ -226,27 +226,42 @@ def find_extrapolation(middle_point, scission_point, max_side_length):
     xb = scission_point[0]
     yb = scission_point[1]
 
-    k = (yb - ya) / (xb - xa)
-    m = yb - k * xb
+    if xb != xa:
+        k = (yb - ya) / (xb - xa)
+        m = yb - k * xb
 
-    # Finding a coordinate Yc in the opposite direction of middle point. Which, starting from Scission point,
-    # has a norm that's equal to the max of the polygon line - which "ensures" there'll be an intersection
-    # yc
-    # xc
+        # Finding a coordinate Yc in the opposite direction of middle point. Which, starting from Scission point,
+        # has a norm that's equal to the max of the polygon line - which "ensures" there'll be an intersection
+        # yc
+        # xc
 
-    xc = symbols("xc")
-    eq = Eq(((k * xc + m) - yb) ** 2 + (xc - xb) ** 2 - max_side_length**2, 0)
-    solutions = solve(eq)
+        xc = symbols("xc")
+        eq = Eq(((k * xc + m) - yb) ** 2 + (xc - xb) ** 2 - max_side_length**2, 0)
+        solutions = solve(eq)
 
-    xc1 = solutions[0]
-    yc1 = k * xc1 + m
+        xc1 = solutions[0]
+        yc1 = k * xc1 + m
 
-    c1 = [int(xc1), int(yc1)]
+        # pdb.set_trace()
 
-    xc2 = solutions[1]
-    yc2 = k * xc2 + m
+        c1 = [int(xc1), int(yc1)]
 
-    c2 = [int(xc2), int(yc2)]
+        xc2 = solutions[1]
+        yc2 = k * xc2 + m
+
+        c2 = [int(xc2), int(yc2)]
+
+    else:
+        # The scission point is exactly vertical to the middle point
+        # equation of the line is x = xb
+
+        yc = symbols("yc")
+        eq = Eq((yc - yb) ** 2 - max_side_length**2, 0)
+
+        solutions = solve(eq)
+
+        c1 = [int(xb), int(solutions[0])]
+        c2 = [int(xb), int(solutions[1])]
 
     ## There are 2 solutions to the equation (2 end points)
     # One "after" the scission point, in the opposite side of the middle point :
@@ -304,7 +319,7 @@ def split_contour(contour, extrapolated_point, scission_point, middle_point, ori
         if canvas is not None:
             cv2.line(canvas, scission_point, extrapolated_point, (0, 255, 0), thickness=7)
             cv2.circle(canvas, center=tuple(second_intersection), radius=20, color=(42, 35, 9), thickness=cv2.FILLED)
-            show("Canvas", canvas)
+            # show("Canvas", canvas)
 
         splitting_line = LineString([middle_point, intersection_point])
 
@@ -365,11 +380,12 @@ def fix_contours(main_contours, original):
         # plot_angles(contour, angles_degrees)
         enriched_contour, scission_information, middle_point, scission_point, max_side_length = enrich_contour_info(contour, angles_degrees, alengths, blengths)
         cv = plot_points(enriched_contour, scission_information)
+        # pdb.set_trace()
         if scission_point is not None:
             # print("Contour needs to be splitted")
             extrapolated_point = find_extrapolation(middle_point, scission_point, max_side_length)
             clean_contour = from_enriched_to_regular(enriched_contour)
-            new_contours, intersection_point = split_contour(clean_contour, extrapolated_point, scission_point, middle_point, original)
+            new_contours, intersection_point = split_contour(clean_contour, extrapolated_point, scission_point, middle_point, original, cv)
         else:
             # print(f"Contour has good shape - no need for split - color index = {color_index}")
             # Reduce size of contour

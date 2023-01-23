@@ -51,7 +51,7 @@ def final_steps(picture_name, THRESH_MIN, THESH_MAX, export: Literal["all", "fai
         contours_color=(0, 255, 0),
         precision_param=0.01,
         only_rectangles=False,
-        show_image=True,
+        show_image=False,
     )
 
     final_contours, original_w_final_contours = fix_contours(main_contours, original)
