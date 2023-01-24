@@ -105,7 +105,6 @@ def get_point_density(points):
             distance = sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
             total_distance += distance
         i += 1
-    print(count)
     return count / total_distance
 
 
@@ -425,7 +424,7 @@ if __name__ == "__main__":
     # "mamie0001_04.jpg" : hopefully fixed with entropy
     # "mamie0011_01.jpg" : hopefully fixed with entropy
 
-    wrong_ones = ["mamie0000_03.jpg", "mamie0001_04.jpg", "mamie0007_03.jpg", "mamie0011_01.jpg", "mamie0013_04.jpg"]
+    wrong_ones = ["mamie0003_01.jpg", "mamie0007_01.jpg", "mamie0011_01.jpg", "mamie0013_04.jpg"]
 
     main(picture_name=wrong_ones, log=False, show_steps=True)
 
