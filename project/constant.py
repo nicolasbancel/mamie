@@ -61,8 +61,8 @@ OPENCV_DATA_DIR = "/Users/nicolasbancel/git/perso/mamie/data/opencv/"
 # FACE DETECTION MODELS
 #######################################################################
 
-YUNET_PATH = "/Users/nicolasbancel/git/perso/mamie/data/opencv/opencv_dnn/face_detection_yunet_2022mar.onnx"
-SFACE_PATH = "/Users/nicolasbancel/git/perso/mamie/data/opencv/opencv_dnn/face_detection_sface_2021dec.onnx"
+YUNET_PATH = "/Users/nicolasbancel/git/perso/mamie/data/opencv_dnn/face_detection_yunet_2022mar.onnx"
+SFACE_PATH = "/Users/nicolasbancel/git/perso/mamie/data/opencv_dnn/face_recognition_sface_2021dec.onnx"
 
 
 # MOSAIC_DIR = os.path.join(Path.cwd().parent, "data/mosaic/")
