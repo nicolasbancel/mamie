@@ -47,7 +47,7 @@ def rotate_np(img, k):
     return rotated
 
 
-def haar_model(img, rotation, model=face_default_cascade, draw=None):
+def haar_model(img, picture_name, rotation, model=face_default_cascade, draw=None):
     """
     Test with rotations
 
@@ -98,13 +98,15 @@ NMS_THRESHOLD = 0.3
 TOP_K = 20
 
 
-def dnn_model(img, rotation, model=YUNET_PATH, draw=None):
+def dnn_model(img, picture_name, rotation, model=YUNET_PATH, draw=None):
     # https://opencv.org/opencv-face-detection-cascade-classifier-vs-yunet/
     # Code sample : https://gist.github.com/UnaNancyOwen/3f06d4a0d04f3a75cc62563aafbac332 from
     #     https://medium.com/@silkworm/yunet-ultra-high-performance-face-detection-in-opencv-a-good-solution-for-real-time-poc-b01063e251d5
     #     https://docs.opencv.org/4.5.4/d0/dd4/tutorial_dnn_face.html
     detector = cv2.FaceDetectorYN.create(YUNET_PATH, "", (320, 320), SCORE_THRESHOLD, NMS_THRESHOLD, TOP_K)  # this will be changed
+
     img = resize(img, 0.5)
+    # resizing loses a bit of precision - for example with :  "mamie0039_03.jpg"
     height, width, _ = img.shape
     img_copy = img.copy()
     detector.setInputSize((width, height))
@@ -135,16 +137,16 @@ def dnn_model(img, rotation, model=YUNET_PATH, draw=None):
             cv2.putText(img_copy, f"Confidence level: {confidence}", position, TEXT_FONT, TEXT_SCALE, TEXT_THICKNESS)
     if draw is not None:
         cv2.putText(img_copy, f"Log of rotation {rotation} * 90°", org=TEXT_TITLE_POS, fontFace=TEXT_FONT, fontScale=3, color=(0, 0, 255), thickness=4)
-    show("Detected faces", img_copy)
+    show(f"{picture_name} - Detected faces", img_copy)
     summary.sort(key=lambda x: x[0], reverse=True)
     return summary
 
 
-def get_all_faces_areas(img, func, **kwargs):
+def get_all_faces_areas(img, picture_name, func, **kwargs):
     faces_areas_per_rotation = {"k": [], "rotation": [], "areas": []}
     for k in range(4):
         rotated_img = rotate_np(img, k)
-        faces_areas = func(rotated_img, k, **kwargs)
+        faces_areas = func(rotated_img, k, picture_name, **kwargs)
         faces_areas_per_rotation["k"].append(k)
         faces_areas_per_rotation["rotation"].append(int(k * 90))
         faces_areas_per_rotation["areas"].append(faces_areas)
@@ -201,16 +203,52 @@ def get_correct_rotation_new(faces_areas_per_rotation):
 
 def all_steps(picture_name):
     img = load_original(picture_name, dir="cropped")
-    faces_areas_per_rotation = get_all_faces_areas(img, dnn_model, draw=True)
+    faces_areas_per_rotation = get_all_faces_areas(img, picture_name, dnn_model, draw=True)
+    print(faces_areas_per_rotation)
     correct_k = get_correct_rotation_new(faces_areas_per_rotation)
-    print(f"Rotation needed : {correct_k} * 90°")
+    print(f"{picture_name} - Rotation needed : {correct_k} * 90°")
     rotated_img = rotate_np(img, correct_k)
-    show("Rotated img", rotated_img)
+    show(f"Rotated img - {picture_name} - {correct_k} * 90", rotated_img)
+
+
+def log_results(picture_name):
+    img = load_original(picture_name, dir="cropped")
+    picture_rotation = {}
+    for k in range(4):
+        rotated_img = rotate_np(img, k)
+        cv2.imshow(f"{picture_name} - Rotation : {k} degrees", rotated_img)
+        r = cv2.waitKey()
+        if r == 27 or r == 32:  # Stopping with escape of space bar
+            cv2.destroyAllWindows()
+            cv2.waitKey(1)
+        elif r == ord("o"):  # o is for OK
+            print(f"Valid rotation for {picture_name} is {k} * 90 degrees")
+            picture_rotation[picture_name] = k
+            cv2.destroyAllWindows()
+            cv2.waitKey(1)
+            break
+    rotation_file = PROJECT_DIR + "rotation_metadata.csv"
+    headers = ["picture_name", "num_rotations_needed"]
+    if path.exists(rotation_file) is False:
+        with open(rotation_file, "a") as wr:
+            writ = csv.writer(wr)
+            print("Printing the headers")
+            writ.writerow(headers)
+    with open(rotation_file, "a") as w:
+        writer = csv.writer(w)
+        for key, value in picture_rotation.items():
+            writer.writerow([key, value])
 
 
 if __name__ == "__main__":
     # from test_detection import *
-    list_pictures = [
+    # img = load_original("mamie0039_03.jpg", dir="cropped")
+    # pictures = "mamie0010_02.jpg" # Works
+    # pictures = "mamie0039_03.jpg"
+
+    """
+    pictures = "mamie0004_02.jpg"
+    pictures = [
         "mamie0036_03.jpg",
         "mamie0038_01.jpg",
         "mamie0039_01.jpg",
@@ -220,6 +258,17 @@ if __name__ == "__main__":
         "mamie0010_03.jpg",
         "mamie0004_02.jpg",
     ]
-    for picture_name in list_pictures:
-        all_steps(picture_name)
+
+    if type(pictures) == list:
+        for picture in pictures:
+            all_steps(picture)
+    else:
+        all_steps(pictures)
+    """
+
+    pictures_to_process = sorted(os.listdir(CROPPED_DIR))[:50]
+    for file in pictures_to_process:
+        if file.endswith(".jpg") or file.endswith(".png"):
+            log_results(file)
+            # all_steps(file)
     pass
