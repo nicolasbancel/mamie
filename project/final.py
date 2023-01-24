@@ -34,7 +34,7 @@ from datetime import datetime
 
 
 def final_steps(picture_name, THRESH_MIN, THESH_MAX, export: Literal["all", "fail_only", "none"] = "fail_only"):
-    MAPPING_DICT = num_pictures_per_mosaic(filename="pictures_per_mosaic.csv")
+    MAPPING_DICT = load_metadata(filename="pictures_per_mosaic.csv")
     true_num_pictures = int(MAPPING_DICT[picture_name])
     original = load_original(picture_name)
     original = whiten_edges(original)
@@ -203,4 +203,4 @@ if __name__ == "__main__":
                 continue
         # print(args["log_results"]) is None when not provided
         if args["log_results"] == True:
-            log_results(FINAL_MESSAGE)
+            log_results(FINAL_MESSAGE, "results.csv")

@@ -16,11 +16,16 @@ import pdb
 # (0, 255, 0) is GREEN
 
 
-def num_pictures_per_mosaic(filename="pictures_per_mosaic.csv"):
+def load_metadata(filename):
+    """
+    Designed to load 2 types of files in dictionnary
+    pictures_per_mosaic.csv
+    rotation_metadata.csv
+    """
     with open(filename, mode="r") as file:
         reader = csv.reader(file)
         next(reader, None)
-        mapping = {rows[0]: rows[1] for rows in reader}
+        mapping = {rows[0]: int(rows[1]) for rows in reader}
     return mapping
 
 
@@ -191,9 +196,9 @@ def config_num():
     return current_config_nun
 
 
-def log_results(message: dict):
+def log_results(message: dict, result_file_name):
     RESULTS_PATH = PROJECT_DIR + "results/"
-    csv_file = RESULTS_PATH + "results.csv"
+    csv_file = RESULTS_PATH + result_file_name
 
     new_message = message.copy()
     csv_headers = list(new_message.keys())
