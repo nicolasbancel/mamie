@@ -7,6 +7,8 @@ import numpy as np
 import math
 from os import path
 import csv
+from math import sqrt
+from PIL import Image, ExifTags
 
 import pdb
 
@@ -216,6 +218,55 @@ def log_results(message: dict, result_file_name):
         writer = csv.writer(w)
         for i in range(num_rows_to_insert):
             writer.writerow([new_message[x][i] for x in csv_headers])
+
+
+def get_point_density(points):
+    total_distance = 0
+    count = 0
+    i = 0
+    for x1, y1 in points:
+        for x2, y2 in points[i + 1 :]:
+            count += 1
+            # print(f"distance between ({x1},{y1}) and ({x2},{y2})")
+            distance = sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+            total_distance += distance
+        i += 1
+    return count / total_distance
+
+
+def rotate_exif(filepath):
+    """
+    Rotate image based on metadata stored about it
+
+    Args:
+        filepath: File location
+
+    Returns:
+        Nothing. It just rotates the picture and overwrites the image
+
+    Sources:
+        - https://stackoverflow.com/questions/13872331/rotating-an-image-with-orientation-specified-in-exif-using-python-without-pil-in
+    """
+
+    try:
+        image = Image.open(filepath)
+        for orientation in ExifTags.TAGS.keys():
+            if ExifTags.TAGS[orientation] == "Orientation":
+                break
+        exif = dict(image._getexif().items())
+
+        if exif[orientation] == 3:
+            image = image.transpose(Image.ROTATE_180)
+        elif exif[orientation] == 6:
+            image = image.transpose(Image.ROTATE_270)
+        elif exif[orientation] == 8:
+            image = image.transpose(Image.ROTATE_90)
+        image.save(filepath)
+        image.close()
+
+    except (AttributeError, KeyError, IndexError) as e:
+        print(f"Error : {e}")  # cases: image don't have getexif
+        pass
 
 
 def nothing(x):

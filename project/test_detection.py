@@ -25,11 +25,10 @@ from datetime import datetime
 #################################################
 
 
-face_default_cascade = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_frontalface_default.xml"))
-
-face_alt_tree_cascade = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_frontalface_alt_tree.xml"))
-face_alt_cascade = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_frontalface_alt.xml"))
-profileface_cascade = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_profileface.xml"))
+FACE_DEFAULT_CASCADE = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_frontalface_default.xml"))
+FACE_ALT_TREE_CASCADE = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_frontalface_alt_tree.xml"))
+FACE_ALT_CASCADE = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_frontalface_alt.xml"))
+PROFILEFACE_CASCADE = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_profileface.xml"))
 
 COLOR = (0, 0, 255)  # Red
 RECT_THICKNESS = 2
@@ -49,7 +48,7 @@ def rotate_np(img, k):
     return rotated
 
 
-def haar_model(img, picture_name, rotation, model=face_default_cascade, show_steps=None):
+def haar_model(img, picture_name, rotation, model=FACE_DEFAULT_CASCADE, show_steps=None):
     """
     Test with rotations
 

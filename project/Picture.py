@@ -2,10 +2,36 @@ from constant import *
 from final import *
 from utils import *
 from transfo import *
+from rotate import *
 
 # import imutils
 from PIL import Image
 import pdb
+
+FACE_DEFAULT_CASCADE = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_frontalface_default.xml"))
+FACE_ALT_TREE_CASCADE = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_frontalface_alt_tree.xml"))
+FACE_ALT_CASCADE = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_frontalface_alt.xml"))
+PROFILEFACE_CASCADE = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_profileface.xml"))
+
+COLOR = (0, 0, 255)  # Red
+RECT_THICKNESS = 2
+TIP_RADIUS = 3
+TIP_THICKNESS = -1  # (filled)
+TEXT_XPOS = 0
+TEXT_YPOS = -10
+TEXT_FONT = cv2.FONT_HERSHEY_SIMPLEX
+TEXT_SCALE = 1
+TEXT_THICKNESS = 2
+
+TEXT_TITLE_POS = (100, 100)
+
+########################
+## DNN MODEL SECTION
+########################
+
+SCORE_THRESHOLD = 0.9
+NMS_THRESHOLD = 0.3
+TOP_K = 20
 
 
 class Picture:
@@ -19,20 +45,11 @@ class Picture:
         """
         self.img = cv2_array if cv2_array is not None else load_original(picture_name, dir="cropped")
         self.face_cascade = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_frontalface_default.xml"))
-        # self.eye_cascade = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_eye.xml"))
-
-    def rotate_pil(self, rotation_angle=-90):
-        """
-        This method crops the picture
-        """
-        new_img = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
-        im_pil = Image.fromarray(new_img)
-        rotated_cv = np.array(im_pil.rotate(rotation_angle).convert("RGB"))
-        # converting from RGB to BGR
-        # Source : https://stackoverflow.com/questions/14134892/convert-image-from-pil-to-opencv-format
-        rotated_cv = rotated_cv[:, :, ::-1]
-        # show("Rotated", rotated_cv)
-        return rotated_cv
+        self.faces_per_rotation = None
+        self.rot90_optimal = None
+        self.rot90_results = None
+        # self.eye_cascade = cv2.C
+        # ascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_eye.xml"))
 
     def rotate_np(self, k):
         """
@@ -40,8 +57,124 @@ class Picture:
         k is a multiplier of # of times to rotate by 90 degrees
         """
         rotated = np.rot90(self.img, k=k)
-        # show("Rotated", rotated)
         return rotated
+
+    def resize(self, scale):
+        new_width = int(self.img.shape[1] * scale)
+        new_height = int(self.img.shape[0] * scale)
+        return cv2.resize(self.img, (new_width, new_height))
+
+    def haar_model(self, k, model=FACE_DEFAULT_CASCADE, show_steps=None):
+        """
+        Args:
+            k :         rotation coefficient. If k = 1, img is rotated by 90°. k = 2, img is rotated by 180°
+            model:      used for face detection
+            show_steps: show the images / steps or not
+
+        Returns:
+            summary: list of n list (n = # of faces detected). Each list (face) has 3 elements :
+                - area of the detected face
+                - confidence level for this face detection
+                - density / closeness of the landmark points
+        Source:
+            https://docs.opencv.org/3.4/d1/de5/classcv_1_1CascadeClassifier.html#aaf8181cb63968136476ec4204ffca498
+        """
+        img = self.resize(self.img, 0.5)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        faces = model.detectMultiScale(gray, 1.1, minNeighbors=5, minSize=(40, 40))
+        x, y, w, h = 0, 0, 0, 0
+
+        img_copy = img.copy()
+
+        summary = []
+
+        for index, (x, y, w, h) in enumerate(faces):
+            summary.append([w * h, 0, 0])
+            cv2.rectangle(img_copy, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.circle(img_copy, (x + int(w * 0.5), y + int(h * 0.5)), 4, (0, 255, 0), -1)
+            cv2.putText(
+                img_copy,
+                f"Face N°{index} - Dims {w}x{h}pix",
+                org=(x + TEXT_XPOS, y - TEXT_YPOS),
+                fontFace=TEXT_FONT,
+                fontScale=TEXT_SCALE,
+                color=COLOR,
+                thickness=TEXT_THICKNESS,
+            )
+
+        cv2.putText(img_copy, f"Log of rotation {k} * 90°", org=TEXT_TITLE_POS, fontFace=TEXT_FONT, fontScale=3, color=(0, 0, 255), thickness=4)
+        if show_steps == True:
+            show("Img with faces", img_copy)
+
+        # True by biggest picture
+        # summary.sort(key=lambda x: x[0], reverse=True)
+        return summary
+
+    def dnn_model(self, k, model=YUNET_PATH, show_steps=None):
+        """
+        Args:
+            k :         rotation coefficient. If k = 1, img is rotated by 90°. k = 2, img is rotated by 180°
+            model:      used for face detection
+            show_steps: show the images / steps or not
+
+        Returns:
+            summary: list of n list (n = # of faces detected). Each list (face) has 3 elements :
+                - area of the detected face
+                - confidence level for this face detection
+                - density / closeness of the landmark points
+        Sources:
+            - https://opencv.org/opencv-face-detection-cascade-classifier-vs-yunet/
+            - Code sample : https://gist.github.com/UnaNancyOwen/3f06d4a0d04f3a75cc62563aafbac332 from
+            - https://medium.com/@silkworm/yunet-ultra-high-performance-face-detection-in-opencv-a-good-solution-for-real-time-poc-b01063e251d5
+            - https://docs.opencv.org/4.5.4/d0/dd4/tutorial_dnn_face.html
+        """
+
+        detector = cv2.FaceDetectorYN.create(YUNET_PATH, "", (320, 320), SCORE_THRESHOLD, NMS_THRESHOLD, TOP_K)  # this will be changed
+
+        img = self.resize(self.img, 0.5)
+        # resizing loses a bit of precision - for example with :  "mamie0039_03.jpg"
+        height, width, _ = img.shape
+        img_copy = img.copy()
+        detector.setInputSize((width, height))
+        _, faces = detector.detect(img)
+
+        faces = faces if faces is not None else []
+
+        summary = []
+
+        for face in faces:
+
+            area = face[2] * face[3]
+            confidence = "{:.2f}".format(face[-1])
+
+            box = face[:4].astype(int)
+            tips = face[4 : len(face) - 1].astype(int)
+            tips = np.array_split(tips, len(tips) / 2)
+
+            landmarks_density = get_point_density(tips)
+            summary.append([area, float(confidence), landmarks_density])
+            cv2.rectangle(img_copy, box, COLOR, RECT_THICKNESS, cv2.LINE_AA)
+            for tip in tips:
+                cv2.circle(img_copy, tip, TIP_RADIUS, COLOR, TIP_THICKNESS, cv2.LINE_AA)
+
+            position = (box[0] + TEXT_XPOS, box[1] + TEXT_YPOS)
+            cv2.putText(img_copy, f"Confidence level: {confidence}", position, TEXT_FONT, TEXT_SCALE, color=COLOR, thickness=TEXT_THICKNESS)
+
+        cv2.putText(img_copy, f"Log of rotation {k} * 90°", org=TEXT_TITLE_POS, fontFace=TEXT_FONT, fontScale=2, color=(0, 0, 255), thickness=4)
+        if show_steps == True:
+            show(f"{self.picture_name} - Detected faces", img_copy)
+        return summary
+
+    def get_faces_per_rotation(self, func, **kwargs):
+        faces_per_rotation = {"k": [], "rotation": [], "summary": []}
+        for k in range(4):
+            rotated_img = self.rotate_np(self.img, k)
+            summary = func(self, k, **kwargs)
+            faces_per_rotation["k"].append(k)
+            faces_per_rotation["rotation"].append(int(k * 90))
+            faces_per_rotation["summary"].append(summary)
+        self.faces_per_rotation
+        return faces_per_rotation
 
     def get_faces(self, k):
         """
@@ -54,7 +187,6 @@ class Picture:
         """
 
         rotated = self.rotate_np(k)
-        # rotated = self.rotate_pil(rotation_angle)
         gray = cv2.cvtColor(rotated, cv2.COLOR_BGR2GRAY)
         # faces = self.face_cascade.detectMultiScale(gray, 1.1, minNeighbors=5, minSize=(60, 60))
         # Example with mamie0010_01.jpg
