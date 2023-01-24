@@ -58,6 +58,7 @@ def haar_model(img, rotation, model=face_default_cascade, draw=None):
     """
 
     # rotated = rotate_np(img, k)
+    img = resize(img, 0.5)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # faces = cascade.detectMultiScale(gray, 1.1, minNeighbors=5, minSize=(200, 200))
     faces = model.detectMultiScale(gray, 1.1, minNeighbors=5, minSize=(40, 40))
@@ -69,11 +70,7 @@ def haar_model(img, rotation, model=face_default_cascade, draw=None):
     summary = []
 
     for index, (x, y, w, h) in enumerate(faces):
-        summary.append(
-            [
-                w * h,
-            ]
-        )
+        summary.append([w * h, 0])
         if draw is not None:
             cv2.rectangle(img_copy, (x, y), (x + w, y + h), (0, 255, 0), 2)
             cv2.circle(img_copy, (x + int(w * 0.5), y + int(h * 0.5)), 4, (0, 255, 0), -1)
@@ -122,7 +119,7 @@ def dnn_model(img, rotation, model=YUNET_PATH, draw=None):
         area = face[2] * face[3]
         confidence = "{:.2f}".format(face[-1])
 
-        summary.append([area, confidence])
+        summary.append([area, float(confidence)])
 
         if draw is not None:
             box = face[:4].astype(int)
@@ -143,11 +140,11 @@ def dnn_model(img, rotation, model=YUNET_PATH, draw=None):
     return summary
 
 
-def get_all_faces_areas(img, func):
+def get_all_faces_areas(img, func, **kwargs):
     faces_areas_per_rotation = {"k": [], "rotation": [], "areas": []}
     for k in range(4):
         rotated_img = rotate_np(img, k)
-        faces_areas = func(rotated_img, k)
+        faces_areas = func(rotated_img, k, **kwargs)
         faces_areas_per_rotation["k"].append(k)
         faces_areas_per_rotation["rotation"].append(int(k * 90))
         faces_areas_per_rotation["areas"].append(faces_areas)
@@ -183,8 +180,46 @@ def rotate_exif(filepath):
         pass
 
 
-if __name__ == "__main__":
-    picture_name = "mamie0010_01.jpg"
+def get_correct_rotation_new(faces_areas_per_rotation):
+    """
+    Method can completely be challenged...
+    Will pretend 3 faces should be detected. If len < 3, just add 0s to the list
+    Average the size of the 3 biggest areas
+    """
+    face_areas = faces_areas_per_rotation["areas"]
+    summary = []
+    for faces_rotation in face_areas:
+        # print(faces_rotation)
+        # print(len(faces_rotation))
+        weighted_cum_area = summary.append(sum([face[0] * face[1] for face in faces_rotation]))
+        # print(weighted_cum_area)
+
+    index_correct_rotation = summary.index(max(summary))
+    correct_k = faces_areas_per_rotation["k"][index_correct_rotation]
+    return correct_k
+
+
+def all_steps(picture_name):
     img = load_original(picture_name, dir="cropped")
-    get_all_faces_areas(img, dnn_model)
+    faces_areas_per_rotation = get_all_faces_areas(img, dnn_model, draw=True)
+    correct_k = get_correct_rotation_new(faces_areas_per_rotation)
+    print(f"Rotation needed : {correct_k} * 90°")
+    rotated_img = rotate_np(img, correct_k)
+    show("Rotated img", rotated_img)
+
+
+if __name__ == "__main__":
+    # from test_detection import *
+    list_pictures = [
+        "mamie0036_03.jpg",
+        "mamie0038_01.jpg",
+        "mamie0039_01.jpg",
+        "mamie0039_03.jpg",
+        "mamie0010_01.jpg",
+        "mamie0010_02.jpg",
+        "mamie0010_03.jpg",
+        "mamie0004_02.jpg",
+    ]
+    for picture_name in list_pictures:
+        all_steps(picture_name)
     pass
