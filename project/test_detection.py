@@ -2,6 +2,7 @@ from constant import *
 from final import *
 from utils import *
 from transfo import *
+from math import sqrt
 
 # import imutils
 from PIL import Image
@@ -48,7 +49,7 @@ def rotate_np(img, k):
     return rotated
 
 
-def haar_model(img, picture_name, rotation, model=face_default_cascade, draw=None):
+def haar_model(img, picture_name, rotation, model=face_default_cascade, show_steps=None):
     """
     Test with rotations
 
@@ -71,27 +72,41 @@ def haar_model(img, picture_name, rotation, model=face_default_cascade, draw=Non
     summary = []
 
     for index, (x, y, w, h) in enumerate(faces):
-        summary.append([w * h, 0])
-        if draw is not None:
-            cv2.rectangle(img_copy, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            cv2.circle(img_copy, (x + int(w * 0.5), y + int(h * 0.5)), 4, (0, 255, 0), -1)
-            cv2.putText(
-                img_copy,
-                f"Face N°{index} - Dims {w}x{h}pix",
-                org=(x + TEXT_XPOS, y - TEXT_YPOS),
-                fontFace=TEXT_FONT,
-                fontScale=TEXT_SCALE,
-                color=COLOR,
-                thickness=TEXT_THICKNESS,
-            )
-    if draw is not None:
-        cv2.putText(img_copy, f"Log of rotation {rotation} * 90°", org=TEXT_TITLE_POS, fontFace=TEXT_FONT, fontScale=3, color=(0, 0, 255), thickness=4)
+        summary.append([w * h, 0, 0])
+        cv2.rectangle(img_copy, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.circle(img_copy, (x + int(w * 0.5), y + int(h * 0.5)), 4, (0, 255, 0), -1)
+        cv2.putText(
+            img_copy,
+            f"Face N°{index} - Dims {w}x{h}pix",
+            org=(x + TEXT_XPOS, y - TEXT_YPOS),
+            fontFace=TEXT_FONT,
+            fontScale=TEXT_SCALE,
+            color=COLOR,
+            thickness=TEXT_THICKNESS,
+        )
 
-    show("Img with faces", img_copy)
+    cv2.putText(img_copy, f"Log of rotation {rotation} * 90°", org=TEXT_TITLE_POS, fontFace=TEXT_FONT, fontScale=3, color=(0, 0, 255), thickness=4)
+    if show_steps == True:
+        show("Img with faces", img_copy)
 
     # True by biggest picture
-    summary.sort(key=lambda x: x[0], reverse=True)
+    # summary.sort(key=lambda x: x[0], reverse=True)
     return summary
+
+
+def get_point_density(points):
+    total_distance = 0
+    count = 0
+    i = 0
+    for x1, y1 in points:
+        for x2, y2 in points[i + 1 :]:
+            count += 1
+            # print(f"distance between ({x1},{y1}) and ({x2},{y2})")
+            distance = sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+            total_distance += distance
+        i += 1
+    print(count)
+    return count / total_distance
 
 
 SCORE_THRESHOLD = 0.9
@@ -99,7 +114,7 @@ NMS_THRESHOLD = 0.3
 TOP_K = 20
 
 
-def dnn_model(img, rotation, picture_name, model=YUNET_PATH, draw=None):
+def dnn_model(img, rotation, picture_name, model=YUNET_PATH, show_steps=None):
     # https://opencv.org/opencv-face-detection-cascade-classifier-vs-yunet/
     # Code sample : https://gist.github.com/UnaNancyOwen/3f06d4a0d04f3a75cc62563aafbac332 from
     #     https://medium.com/@silkworm/yunet-ultra-high-performance-face-detection-in-opencv-a-good-solution-for-real-time-poc-b01063e251d5
@@ -122,36 +137,36 @@ def dnn_model(img, rotation, picture_name, model=YUNET_PATH, draw=None):
         area = face[2] * face[3]
         confidence = "{:.2f}".format(face[-1])
 
-        summary.append([area, float(confidence)])
+        box = face[:4].astype(int)
+        tips = face[4 : len(face) - 1].astype(int)
+        tips = np.array_split(tips, len(tips) / 2)
 
-        if draw is not None:
-            box = face[:4].astype(int)
-            cv2.rectangle(img_copy, box, COLOR, RECT_THICKNESS, cv2.LINE_AA)
+        landmarks_density = get_point_density(tips)
+        # summary.append([area, float(confidence), tips])
+        summary.append([area, float(confidence), landmarks_density])
+        cv2.rectangle(img_copy, box, COLOR, RECT_THICKNESS, cv2.LINE_AA)
+        for tip in tips:
+            cv2.circle(img_copy, tip, TIP_RADIUS, COLOR, TIP_THICKNESS, cv2.LINE_AA)
 
-            tips = face[4 : len(face) - 1].astype(int)
-            tips = np.array_split(tips, len(tips) / 2)
+        position = (box[0] + TEXT_XPOS, box[1] + TEXT_YPOS)
+        cv2.putText(img_copy, f"Confidence level: {confidence}", position, TEXT_FONT, TEXT_SCALE, color=COLOR, thickness=TEXT_THICKNESS)
 
-            for tip in tips:
-                cv2.circle(img_copy, tip, TIP_RADIUS, COLOR, TIP_THICKNESS, cv2.LINE_AA)
-
-            position = (box[0] + TEXT_XPOS, box[1] + TEXT_YPOS)
-            cv2.putText(img_copy, f"Confidence level: {confidence}", position, TEXT_FONT, TEXT_SCALE, color=COLOR, thickness=TEXT_THICKNESS)
-    if draw is not None:
-        cv2.putText(img_copy, f"Log of rotation {rotation} * 90°", org=TEXT_TITLE_POS, fontFace=TEXT_FONT, fontScale=2, color=(0, 0, 255), thickness=4)
-    show(f"{picture_name} - Detected faces", img_copy)
-    summary.sort(key=lambda x: x[0], reverse=True)
+    cv2.putText(img_copy, f"Log of rotation {rotation} * 90°", org=TEXT_TITLE_POS, fontFace=TEXT_FONT, fontScale=2, color=(0, 0, 255), thickness=4)
+    if show_steps == True:
+        show(f"{picture_name} - Detected faces", img_copy)
+    # summary.sort(key=lambda x: x[0], reverse=True)
     return summary
 
 
-def get_all_faces_areas(img, picture_name, func, **kwargs):
-    faces_areas_per_rotation = {"k": [], "rotation": [], "areas": []}
+def get_faces_per_rotation(img, picture_name, func, **kwargs):
+    faces_per_rotation = {"k": [], "rotation": [], "summary": []}
     for k in range(4):
         rotated_img = rotate_np(img, k)
-        faces_areas = func(rotated_img, k, picture_name, **kwargs)
-        faces_areas_per_rotation["k"].append(k)
-        faces_areas_per_rotation["rotation"].append(int(k * 90))
-        faces_areas_per_rotation["areas"].append(faces_areas)
-    return faces_areas_per_rotation
+        summary = func(rotated_img, k, picture_name, **kwargs)
+        faces_per_rotation["k"].append(k)
+        faces_per_rotation["rotation"].append(int(k * 90))
+        faces_per_rotation["summary"].append(summary)
+    return faces_per_rotation
 
 
 def resize(img, scale):
@@ -191,66 +206,101 @@ def weight_cum_area(li):
     return sum([face[0] * face[1] for face in li])
 
 
-def get_rotation_model_one(faces_areas_per_rotation):
+def get_rotation_model_one(faces_per_rotation):
     """
     Method can completely be challenged...
     Will pretend 3 faces should be detected. If len < 3, just add 0s to the list
     Average the size of the 3 biggest areas
     """
-    face_areas = faces_areas_per_rotation["areas"]
-    summary = []
-    for faces_rotation in face_areas:
+    summaries = faces_per_rotation["summary"]
+    result = []
+    for summary in summaries:
         # print(faces_rotation)
         # print(len(faces_rotation))
-        weighted_cum_area = summary.append(sum([face[0] * face[1] for face in faces_rotation]))
+        weighted_cum_area = result.append(sum([face[0] * face[1] for face in summary]))
         # print(weighted_cum_area)
 
     index_correct_rotation = summary.index(max(summary))
-    correct_k = faces_areas_per_rotation["k"][index_correct_rotation]
-    return correct_k, summary
+    correct_k = faces_per_rotation["k"][index_correct_rotation]
+    return correct_k, result
 
 
-def get_rotation_model_two(faces_areas_per_rotation):
+def get_rotation_model_two(faces_per_rotation):
     """
     If only 1 face seems to be on the picture : retain the rotation with the highest accuracy
     If multiple faces :
       Take the one that has the most accuracy = 1
     """
-    face_areas = faces_areas_per_rotation["areas"]
-    summary = []
+    summaries = faces_per_rotation["summary"]
+    result = []
 
     def num_faces(li):
         """
-        li is a list of faces identified on a picture. It's a list of 2 element lists
-        where each list is a face
+        li is a list of lists. Each sublist corresponds to 1 rotation. On that rotation, we capture faces, made of
+        - an area
+        - an accuracy
+        The function returns the max number of faces identified across the different rotations
         Typical input : face_areas = faces_areas_per_rotation["areas"]
         """
         max_num_faces = max([len(faces) for faces in li])
         return max_num_faces
 
-    def num_ones(l):
+    def rotation_summary(l):
         """
-        l is a 2 element list which corresponds to 1 face
+        l corresponds to a list of faces identified on 1 picture rotation
+        Each element of l is a 2 element list which corresponds to 1 face
         l[0] : area of the rectanle
         l[1] : accuracy of the prediction
         Typical input : face_area[0]
+
+        Output:
+        num_ones: number of perfectly identified faces on the rotation
+        highest_score: except accuracy = 1, what's the 2nd highest accuracy score. If none (because no face was found, or because only accuracy = 1), defaults to 0
         """
-        i = 0
+        num_ones = 0
+        highest_score = 0
+        weigthed_densities = []
         for face in l:
-            if face[1] == 1:
-                i += 1
-        return i
+            weighted_density = face[2] * face[1]
+            weigthed_densities.append(weighted_density)
+            if face[1] >= 0.99:
+                # >= 0.99 instead of == 1 fixes mamie0007_03.jpg
+                # where Vladimir and Monique are identified with 1.00 x 0.99, and 1.00 and 1.00
+                # but 1.00 x 0.99 is cleaner
+                num_ones += 1
+            else:
+                highest_score = max(highest_score, face[1])
 
-    num_faces_identified = num_faces(face_areas)
+        if len(weigthed_densities) > 0:
+            avg_density = sum(weigthed_densities) / len(weigthed_densities)
+        else:
+            avg_density = None
+        return num_ones, highest_score, avg_density
 
-    for index, rotation in enumerate(face_areas):
-        summary.append([num_ones(rotation), weight_cum_area(rotation), index])
+    def second_highest_score(li):
+        """
+        Except 1, what is the highest accuracy we can find on that picture x rotation combination
+        """
+        pass
 
-    summary.sort(key=lambda x: (-x[0], -x[1]))
+    # We actually don't use the num_faces parameter
+    num_faces_identified = num_faces(summaries)
+
+    for index, rotation in enumerate(summaries):
+        num_ones, highest_score, avg_density = rotation_summary(rotation)
+        result.append([num_ones, highest_score, avg_density, weight_cum_area(rotation), index])
+
+    # Sort by :
+    # - rotation that has the highest number of faces perfectly identified
+    # - if there's tie in the # of perfectly identified faces, what's the next highest accuracy ?
+    # - if there's a tie : which rotation has the lowest density of landmarks on faces ? (usually, there's a good spread of landmarks)
+    #   when a face is well identified. Particularly useful for 1 single picture type of photos
+    # - if there's a tie there as well : which rotation has the highest area covered ?
+    result.sort(key=lambda x: (-x[0], -x[1], x[2], -x[3]))
     # The 1st element of summary is now the "best" rotation config. Its index is stored in the last one element
-    correct_index_rotation = summary[0][-1]
-    correct_k = faces_areas_per_rotation["k"][correct_index_rotation]
-    return correct_k, summary
+    correct_index_rotation = result[0][-1]
+    correct_k = faces_per_rotation["k"][correct_index_rotation]
+    return correct_k, result
 
 
 def correct_rotation_per_picture(filename="rotation_metadata.csv"):
@@ -261,22 +311,27 @@ def correct_rotation_per_picture(filename="rotation_metadata.csv"):
     return mapping
 
 
-def all_steps(picture_name, rotation_model=2):
+def all_steps(picture_name, rotation_model=2, show_steps=None):
     img = load_original(picture_name, dir="cropped")
-    faces_areas_per_rotation = get_all_faces_areas(img, picture_name, dnn_model, draw=True)
-    print(faces_areas_per_rotation)
+    faces_per_rotation = get_faces_per_rotation(img, picture_name, dnn_model, show_steps=show_steps)
+    print(faces_per_rotation)
     if rotation_model == 1:
-        predicted_k, summary = get_rotation_model_one(faces_areas_per_rotation)
+        predicted_k, summary = get_rotation_model_one(faces_per_rotation)
     else:
-        predicted_k, summary = get_rotation_model_two(faces_areas_per_rotation)
+        predicted_k, summary = get_rotation_model_two(faces_per_rotation)
+    print(summary)
     print(f"{picture_name} - Rotation needed : {predicted_k} * 90°")
     rotated_img = rotate_np(img, predicted_k)
-    show(f"Rotated img - {picture_name} - {predicted_k} * 90", rotated_img)
+    if show_steps == True:
+        show(f"Rotated img - {picture_name} - {predicted_k} * 90", rotated_img)
     return rotated_img, predicted_k, summary
 
 
-def main(num_pic=None, rotation_model=2, log=None):
-    ROTATION_METADATA = num_pictures_per_mosaic(filename="rotation_metadata.csv")
+def main(picture_name=None, num_pic=None, rotation_model=2, log=None, show_steps=False):
+    """
+    If provided : picture_name should be a list, like ["mamie0000_03.jpg", "mamie0001_04.jpg", "mamie0007_02.jpg"]
+    """
+    ROTATION_METADATA = load_metadata(filename="rotation_metadata.csv")
     ROTATION_MODELS = {
         "config_num": [],
         "picture_name": [],
@@ -284,24 +339,29 @@ def main(num_pic=None, rotation_model=2, log=None):
         "correct_rotation": [],
         "predicted_rotation": [],
         "success": [],
-        "summary_ranking": [],
+        "summary": [],
     }
-    if num_pic is not None:
-        pictures_to_process = sorted(os.listdir(CROPPED_DIR))[:50]
+    if picture_name is not None:
+        pictures_to_process = picture_name
+    elif num_pic is not None:
+        pictures_to_process = sorted(os.listdir(CROPPED_DIR))[:num_pic]
     else:
-        pictures_to_process = sorted(os.listdir(CROPPED_DIR))
+        pictures_to_process = sorted(os.listdir(CROPPED_DIR))[:70]
     config_num = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     for picture_name in pictures_to_process:
         if picture_name.endswith(".jpg") or picture_name.endswith(".png"):
-            rotated_img, predicted_k, summary = all_steps(picture_name, rotation_model)
+            rotated_img, predicted_k, summary = all_steps(picture_name, rotation_model, show_steps)
             ROTATION_MODELS["config_num"].append(config_num)
             ROTATION_MODELS["picture_name"].append(picture_name)
             ROTATION_MODELS["rotation_model"].append(rotation_model)
-            ROTATION_MODELS["correct_rotation"].append(ROTATION_METADATA[picture_name])
+            # Get method below because the correct rotation may not have been loaded
+            ROTATION_MODELS["correct_rotation"].append(ROTATION_METADATA.get(picture_name))
             ROTATION_MODELS["predicted_rotation"].append(predicted_k)
-            ROTATION_MODELS["success"].append(predicted_k == ROTATION_METADATA[picture_name])
-            ROTATION_MODELS["success"].append(summary)
+            ROTATION_MODELS["success"].append(predicted_k == ROTATION_METADATA.get(picture_name) if ROTATION_METADATA.get(picture_name) is not None else "N/A")
+            ROTATION_MODELS["summary"].append(summary)
     if log == True:
+        print(ROTATION_MODELS)
+
         log_results(ROTATION_MODELS, "results_rotation.csv")
 
 
@@ -355,8 +415,21 @@ if __name__ == "__main__":
     # pictures = "mamie0010_02.jpg" # Works
     # pictures = "mamie0039_03.jpg"
     # from test_detection import *
-    main(log=True)
 
+    # main(picture_name=["mamie0000_03.jpg", "mamie0001_04.jpg", "mamie0007_02.jpg"], log=False, show_steps=True)
+
+    # "mamie0007_02.jpg" : fixed with 2nd highest accuracy
+    # "mamie0014_01.jpg" : fixed with 2nd highest accuracy
+
+    # "mamie0000_03.jpg" : hopefully fixed with entropy
+    # "mamie0001_04.jpg" : hopefully fixed with entropy
+    # "mamie0011_01.jpg" : hopefully fixed with entropy
+
+    wrong_ones = ["mamie0000_03.jpg", "mamie0001_04.jpg", "mamie0007_03.jpg", "mamie0011_01.jpg", "mamie0013_04.jpg"]
+
+    main(picture_name=wrong_ones, log=False, show_steps=True)
+
+    # main(num_pic=50, rotation_model=2, log=True, show_steps=False)
     """
     pictures = "mamie0004_02.jpg"
     pictures = [
