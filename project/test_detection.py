@@ -93,20 +93,6 @@ def haar_model(img, picture_name, rotation, model=FACE_DEFAULT_CASCADE, show_ste
     return summary
 
 
-def get_point_density(points):
-    total_distance = 0
-    count = 0
-    i = 0
-    for x1, y1 in points:
-        for x2, y2 in points[i + 1 :]:
-            count += 1
-            # print(f"distance between ({x1},{y1}) and ({x2},{y2})")
-            distance = sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
-            total_distance += distance
-        i += 1
-    return count / total_distance
-
-
 SCORE_THRESHOLD = 0.9
 NMS_THRESHOLD = 0.3
 TOP_K = 20
@@ -423,9 +409,9 @@ if __name__ == "__main__":
     # "mamie0001_04.jpg" : hopefully fixed with entropy
     # "mamie0011_01.jpg" : hopefully fixed with entropy
 
-    wrong_ones = ["mamie0003_01.jpg", "mamie0007_01.jpg", "mamie0011_01.jpg", "mamie0013_04.jpg"]
+    # wrong_ones = ["mamie0003_01.jpg", "mamie0007_01.jpg", "mamie0011_01.jpg", "mamie0013_04.jpg"]
 
-    main(picture_name=wrong_ones, log=False, show_steps=True)
+    main(num_pic=50, log=True, show_steps=True)
 
     # main(num_pic=50, rotation_model=2, log=True, show_steps=False)
     """
