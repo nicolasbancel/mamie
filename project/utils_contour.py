@@ -1,6 +1,7 @@
 import cv2
 from constant import *
 from Mosaic import *
+from Contour import *
 from utils import *
 import pdb
 
@@ -27,12 +28,8 @@ def draw_contours(mosaic, show_image=False):
     return img_w_contours
 
 
-def reshape_contour(contour):
-    pass
-
-
 def draw_main_contours(
-    mosaic,
+    mosaic: Mosaic,
     contour_size=CONTOUR_SIZE,
     contours_color=CONTOUR_COLOR_DEFAULT,
     precision_param=CONTOUR_PRECISION_PARAM,
@@ -118,6 +115,47 @@ def from_enriched_to_regular(enriched_contour):
     contour = np.array(contour, dtype=np.int64)
 
     return contour
+
+
+def fix_contours(mosaic):
+    final_image = mosaic.img.copy()
+    final_contours = []
+    color_index = 0
+
+    for elem in mosaic.contours_main:
+        # If need to print or draw : do it on elem
+        contour = Contour(elem)
+        cv = contour.plot_points(show=False)
+        if contour.scission_point is not None:
+            # print("Contour needs to be splitted")
+            contour.find_extrapolation()
+            split_contours, intersection_point = contour.split_contour(mosaic.img, cv)
+            new_contours = split_contours
+            show("cv", cv)
+        else:
+            # print(f"Contour has good shape - no need for split - color index = {color_index}")
+            # new_contours has to be a list - in this case, it's a list of 1 single element
+            # from_enriched_to_regular is necessary : it removes the bad points
+            # and takes advantaged of the cleaning done in enrich_contour()
+            clean_contour = from_enriched_to_regular(contour.enriched)
+            new_contours = [clean_contour]
+        for cont in new_contours:
+            # print(f"Contour is too big - color index = {color_index}")
+            final_contours.append(cont)
+            draw(final_image, cont, color_index)
+            color_index += 1
+        # elif contour_area > MIN_AREA_THRESHOLD and contour_area <= MAX_AREA_THRESHOLD:
+        # print(f"Contour has good shape - no need for split - color index = {color_index}")
+        # Reduce size of contour
+        # contour = contour[:, 0, :]
+        # final_contours.append(contour)
+        # draw(final_image, contour, color_index)
+        # color_index += 1
+
+    # UNCOMMENT FOR TESTING
+    # show("Final contours", final_image)
+
+    return final_contours, final_image
 
 
 if __name__ == "__main__":

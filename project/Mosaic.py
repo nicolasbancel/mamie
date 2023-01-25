@@ -15,8 +15,10 @@ class Mosaic:
         self.img_blur = cv2.GaussianBlur(self.img_grey, (3, 3), 0)
         self.img_thresh = self.thresh()
         self.img_w_main_contours = None
+        self.img_w_final_contours = None
         self.contours_all = None
         self.contours_main = None
+        self.contours_final = None
 
         self.num_contours_total = None
         self.num_contours_main = None

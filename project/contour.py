@@ -16,6 +16,8 @@ CANVAS_COLUMNS = 6000
 class Contour:
     def __init__(self, np_array=None):
         self.points = np_array
+        self.num_points = len(np_array)
+        self.area = cv2.contourArea(np_array)
         self.get_angles()
         self.enrich_contour()
 
@@ -152,7 +154,7 @@ class Contour:
 
         return self.enriched, self.scission_information, self.middle_point, self.scission_point, self.max_side_length
 
-    def plot_points(self):
+    def plot_points(self, show=None):
         # Shows bad points anyways since no cleaning has been done yet
 
         contour = from_enriched_to_regular(self.enriched)
@@ -173,12 +175,14 @@ class Contour:
             for dict in self.scission_information:
                 cv2.circle(cv, center=tuple(dict["middle_point"]), radius=20, color=(42, 35, 9), thickness=cv2.FILLED)
 
-        show("Canvas with regular, scission, bad, and middle points", cv)
+        if show == True:
+            show("Canvas with regular, scission, bad, and middle points", cv)
 
         return cv
 
     def find_extrapolation(self):
         """
+        ONLY WORKS IF self HAS A SCISSION POINT, HENCE self.scission_point is not None
         For a given massive contour (interpreted as a polygon), with a scission point
         The function determines the scission line associated, which would split the polygon into 2 parts
         2 steps :
