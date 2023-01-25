@@ -15,7 +15,7 @@ from datetime import datetime
 #############################################
 
 
-def main(mosaic_name, export_contoured: Literal["all", "fail_only", "none"] = "fail_only", export_cropped: Literal["all", "none"] = "none"):
+def get_contours(mosaic_name, export_contoured: Literal["all", "fail_only", "none"] = None):
     MAPPING_DICT = load_metadata(filename="pictures_per_mosaic.csv")
     mosaic = Mosaic(mosaic_name)
     find_contours(mosaic, retrieval_mode=cv2.RETR_EXTERNAL)  # updates mosaic.contours_all
@@ -71,7 +71,20 @@ def main(mosaic_name, export_contoured: Literal["all", "fail_only", "none"] = "f
             failure_path = CONTOURED_DIR + "failure/" + picture_name
             cv2.imwrite(failure_path, final)
 
-    return original, original_w_main_contours, original_w_final_contours, main_contours, final_contours, message
+    return mosaic, message
+
+
+def all_steps(mosaic_name, export_contoured="fail_only", export_cropped="all"):
+    # Get all contour information
+    mosaic, message = get_contours(mosaic_name, export_contoured)
+    # Crop each contour, warpAffine it, and store the cropped images in a mosaic attribute
+    crop_mosaic(mosaic)
+    # For each cropped Picture of the mosaic, get its correct rotation
+    for i in range(mosaic.num_contours_final):
+        picture_name = mosaic.cropped_pictures["filename"][i]
+        cv2_array = mosaic.cropped_pictures["img"][i]
+        picture = Picture(picture_name, cv2_array)
+        rotate_one(picture)
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@ from Contour import *
 from pathlib import Path
 import numpy as np
 from utils import *
+from typing import Literal
 import pdb
 from Picture import *
 
@@ -195,7 +196,7 @@ def draw_rectangle_box(original, contour):
     return copy
 
 
-def crop(mosaic, export=None):
+def crop_mosaic(mosaic, export_cropped: Literal["all", "none"] = None):
     """
     Takes the mosaic as an input (with its final contours) :
     - Does a warp affine transformation on each image within the contour
@@ -219,7 +220,7 @@ def crop(mosaic, export=None):
         cropped_images["img"].append(output_img)
         mosaic.cropped_images = cropped_images
 
-        if export == True:
+        if export_cropped == True:
             path = os.path.join(CROPPED_DIR, new_filename)
             cv2.imwrite(path, output_img)
 
