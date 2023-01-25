@@ -18,11 +18,11 @@ from datetime import datetime
 #############################################
 
 
-def get_contours(mosaic_name, export_contoured: Literal["all", "fail_only", "none"] = None):
+def get_contours(mosaic_name, export_contoured: Literal["all", "fail_only", "none"] = None, show_image=None):
     MAPPING_DICT = load_metadata(filename="pictures_per_mosaic.csv")
     mosaic = Mosaic(mosaic_name)
     find_contours(mosaic, retrieval_mode=cv2.RETR_EXTERNAL)  # updates mosaic.contours_all
-    message = draw_main_contours(mosaic, only_rectangles=False, show_image=True)  # Updates 4 attributes :
+    message = draw_main_contours(mosaic, only_rectangles=False, show_image=show_image)  # Updates 4 attributes :
     # mosaic.contours_main / img_w_main_contours / num_contours_total / num_contours_main
     fix_contours(mosaic)  # Updates 2 attributes : mosaic.contours_final & mosaic.img_w_final_contours
     mosaic.num_points_per_contour = [len(cont) for cont in mosaic.contours_final]
@@ -77,18 +77,23 @@ def get_contours(mosaic_name, export_contoured: Literal["all", "fail_only", "non
     return mosaic, message
 
 
-def all_steps(mosaic_name, export_contoured="fail_only", export_cropped="all", export_rotated="all"):
+def all_steps(mosaic_name, export_contoured="fail_only", export_cropped=True, export_rotated=True):
     # Get all contour information
-    mosaic, message = get_contours(mosaic_name, export_contoured)
+    mosaic, message = get_contours(mosaic_name, export_contoured=export_contoured, show_image=True)
     # Crop each contour, warpAffine it, and store the cropped images in a mosaic attribute
     if mosaic.success == True:
-        crop_mosaic(mosaic, export_cropped)
+        crop_mosaic(mosaic, export_cropped=export_cropped, show_image=False)
         # For each cropped Picture of the mosaic, get its correct rotation
         for i in range(mosaic.num_contours_final):
             picture_name = mosaic.cropped_pictures["filename"][i]
             cv2_array = mosaic.cropped_pictures["img"][i]
-            picture = Picture(picture_name, cv2_array)
-            rotate_one(picture, export_rotated=True, show_steps=True)
+            picture = Picture(picture_name=picture_name, cv2_array=cv2_array)
+            rotate_one(picture, export_rotated=export_rotated, show_steps=True)
+            print(vars(picture))
+
+
+def main():
+    pass
 
 
 if __name__ == "__main__":

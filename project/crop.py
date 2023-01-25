@@ -202,7 +202,7 @@ def draw_rectangle_box(original, contour):
     return copy
 
 
-def crop_mosaic(mosaic, export_cropped: Literal["all", "none"] = None):
+def crop_mosaic(mosaic, export_cropped=None, show_image=None):
     """
     Takes the mosaic as an input (with its final contours) :
     - Does a warp affine transformation on each image within the contour
@@ -212,7 +212,7 @@ def crop_mosaic(mosaic, export_cropped: Literal["all", "none"] = None):
     for idx, contour in enumerate(mosaic.contours_final):
         # Option : before wrap
         # output_img = extract_contour(original, contour)
-        output_img = warpAffine_contour(mosaic, contour, show_image=True)
+        output_img = warpAffine_contour(mosaic, contour, show_image=show_image)
         # Option below looses quality
         # output_img = warpPerspective_contour(original, contour)
         (filename, extension) = mosaic.mosaic_name.split(".")
