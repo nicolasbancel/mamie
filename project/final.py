@@ -1,8 +1,6 @@
-from transfo import *
-from utils_contour import *
 from constant import *
 from utils import *
-from angles import *
+from utils_contour import *
 from typing import Literal
 from export import *
 import argparse
