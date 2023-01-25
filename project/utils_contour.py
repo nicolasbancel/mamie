@@ -104,7 +104,7 @@ def draw_main_contours(
     if show_image:
         show("Original w Main Contours", img_w_main_contours)
 
-    return img_w_main_contours, contours_main, message
+    return message
 
 
 def fix_contours(mosaic):
@@ -119,7 +119,7 @@ def fix_contours(mosaic):
         if contour.scission_point is not None:
             # print("Contour needs to be splitted")
             contour.find_extrapolation()
-            split_contours, intersection_point = contour.split_contour(mosaic.img, cv)
+            split_contours, intersection_point = contour.split_contour(mosaic.img_source, cv)
             new_contours = split_contours
             show("cv", cv)
         else:
@@ -134,6 +134,7 @@ def fix_contours(mosaic):
             draw(final_image, cont, color_index)
             color_index += 1
     mosaic.contours_final = contours_final
+    mosaic.num_contours_final = len(contours_final)
     mosaic.img_w_final_contours = final_image
     # UNCOMMENT FOR TESTING
     show("Final contours", final_image)

@@ -1,7 +1,5 @@
 import numpy as np
 from utils import *
-from utils_contour import *
-from Mosaic import *
 import cv2
 from statistics import mean
 from shapely.geometry import Polygon, LineString
@@ -271,7 +269,7 @@ class Contour:
 
         return self.extrapolated_point
 
-    def split_contour(self, mosaic: Mosaic, canvas=None):
+    def split_contour(self, img_source, canvas=None):
         """
         - Determine whether or not the line intersects the polygon
             - Documentation : https://stackoverflow.com/questions/6050392/determine-if-a-line-segment-intersects-a-polygon
@@ -331,7 +329,7 @@ class Contour:
         self.intersection_point = intersection_point
         self.split_contours = split_contours
 
-        original_copy = mosaic.img_source.copy()
+        original_copy = img_source.copy()
 
         for index, p in enumerate(split_contours):
             cv2.drawContours(original_copy, [p], -1, COLOR_LIST[index], 40)

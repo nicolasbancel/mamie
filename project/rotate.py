@@ -77,7 +77,7 @@ def haar_model(Picture, k, model=FACE_DEFAULT_CASCADE, show_steps=None):
     return summary
 
 
-def dnn_model(Picture, k, model=YUNET_PATH, show_steps=None):
+def dnn_model(picture, k, model=YUNET_PATH, show_steps=None):
     """
     Args:
         k :         rotation coefficient. If k = 1, img is rotated by 90°. k = 2, img is rotated by 180°
@@ -98,7 +98,7 @@ def dnn_model(Picture, k, model=YUNET_PATH, show_steps=None):
 
     detector = cv2.FaceDetectorYN.create(YUNET_PATH, "", (320, 320), SCORE_THRESHOLD, NMS_THRESHOLD, TOP_K)  # this will be changed
 
-    img = Picture.resize(0.5)
+    img = picture.resize(0.5)
     # resizing loses a bit of precision - for example with :  "mamie0039_03.jpg"
     height, width, _ = img.shape
     img_copy = img.copy()

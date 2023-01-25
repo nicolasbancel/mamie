@@ -1,6 +1,7 @@
 from constant import *
 from Mosaic import *
 from Contour import *
+from Picture import *
 from utils import *
 from utils_contour import *
 from typing import Literal
@@ -32,10 +33,10 @@ def get_contours(mosaic_name, export_contoured: Literal["all", "fail_only", "non
 
     if mosaic.num_contours_final == mosaic.true_num_pictures and inc == 0:
         mosaic.success = True
-        message["success"] == True
+        message["success"] = True
     else:
         mosaic.success = False
-        message["success"] == False
+        message["success"] = False
 
     now = datetime.now()
     dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
@@ -64,11 +65,11 @@ def get_contours(mosaic_name, export_contoured: Literal["all", "fail_only", "non
 
     if mosaic.success == True:
         if export_contoured == "all":
-            success_path = CONTOURED_DIR + "success/" + picture_name
+            success_path = CONTOURED_DIR + "success/" + mosaic_name
             cv2.imwrite(success_path, final)
     else:
         if export_contoured == "all" or "fail_only":
-            failure_path = CONTOURED_DIR + "failure/" + picture_name
+            failure_path = CONTOURED_DIR + "failure/" + mosaic_name
             cv2.imwrite(failure_path, final)
 
     return mosaic, message
@@ -78,22 +79,26 @@ def all_steps(mosaic_name, export_contoured="fail_only", export_cropped="all", e
     # Get all contour information
     mosaic, message = get_contours(mosaic_name, export_contoured)
     # Crop each contour, warpAffine it, and store the cropped images in a mosaic attribute
-    crop_mosaic(mosaic, export_cropped)
-    # For each cropped Picture of the mosaic, get its correct rotation
-    for i in range(mosaic.num_contours_final):
-        picture_name = mosaic.cropped_pictures["filename"][i]
-        cv2_array = mosaic.cropped_pictures["img"][i]
-        picture = Picture(picture_name, cv2_array)
-        rotate_one(picture)
+    if mosaic.success == True:
+        crop_mosaic(mosaic, export_cropped)
+        # For each cropped Picture of the mosaic, get its correct rotation
+        for i in range(mosaic.num_contours_final):
+            picture_name = mosaic.cropped_pictures["filename"][i]
+            cv2_array = mosaic.cropped_pictures["img"][i]
+            picture = Picture(picture_name, cv2_array)
+            rotate_one(picture)
 
 
 if __name__ == "__main__":
+    all_steps("mamie0028.jpg")
 
     # Example of execution plan
     # python3 final.py -n 20 OR
     # python3 final.py OR
     # python3 final.py -i "mamie0001.jpg" OR
     # python3 final.py -log True
+
+    """
 
     ap = argparse.ArgumentParser()
     ap.add_argument("-i", "--image", required=False, help="Name of image - located in mosaic dir")
@@ -175,3 +180,4 @@ if __name__ == "__main__":
         # print(args["log_results"]) is None when not provided
         if args["log_results"] == True:
             log_results(FINAL_MESSAGE, "results.csv")
+    """

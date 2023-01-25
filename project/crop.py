@@ -37,7 +37,7 @@ def warpAffine_contour(mosaic, contour, show_image=None):
     """
     orig_width, orig_height, _ = mosaic.img_source.shape
     warped = mosaic.img_source.copy()
-    rectangle = cv2.minAreaRect(contour.points)
+    rectangle = cv2.minAreaRect(contour)
     (center, (width, height), angle) = rectangle
     width_int = int(width)
     height_int = int(height)
@@ -104,9 +104,12 @@ def warpPerspective_contour(mosaic, contour, show_image=None):
     https://www.youtube.com/watch?v=SQ3D1tlCtNg&t=558s&ab_channel=GiovanniCode
 
     Loading the original is unnecessary
+
+    # In this case, contour is NOT the class defined in our project
+    # It's a simple classic cv2 / np array
     """
     original = mosaic.img_source
-    rectangle = cv2.minAreaRect(contour.points)
+    rectangle = cv2.minAreaRect(contour)
     (center, (width, height), angle) = rectangle
     rect_points = np.intp(cv2.boxPoints(rectangle))
 
@@ -175,6 +178,9 @@ def draw_rectangle_box(original, contour):
     """
     The angle provided is the angle between first and last point of the contour
     So it's always a number between 0 and -90
+
+    # In this case, contour is NOT the class defined in our project
+    # It's a simple classic cv2 / np array
     """
     copy = original.copy()
     rectangle = cv2.minAreaRect(contour)
@@ -202,11 +208,11 @@ def crop_mosaic(mosaic, export_cropped: Literal["all", "none"] = None):
     - Does a warp affine transformation on each image within the contour
     - Adds the final images (warped) to the Mosaic attributes
     """
-    cropped_images = dict({"filename": [], "img": []})
+    cropped_pictures = dict({"filename": [], "img": []})
     for idx, contour in enumerate(mosaic.contours_final):
         # Option : before wrap
         # output_img = extract_contour(original, contour)
-        output_img = warpAffine_contour(original, contour)
+        output_img = warpAffine_contour(mosaic, contour, show_image=True)
         # Option below looses quality
         # output_img = warpPerspective_contour(original, contour)
         (filename, extension) = mosaic.mosaic_name.split(".")
@@ -216,9 +222,9 @@ def crop_mosaic(mosaic, export_cropped: Literal["all", "none"] = None):
             suffix = "_" + str(idx + 1)
         new_filename = filename + suffix + "." + extension
 
-        cropped_images["filename"].append(new_filename)
-        cropped_images["img"].append(output_img)
-        mosaic.cropped_images = cropped_images
+        cropped_pictures["filename"].append(new_filename)
+        cropped_pictures["img"].append(output_img)
+        mosaic.cropped_pictures = cropped_pictures
 
         if export_cropped == True:
             path = os.path.join(CROPPED_DIR, new_filename)
