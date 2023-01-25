@@ -1,6 +1,7 @@
 from Picture import *
 from utils import *
 import cv2
+from datetime import datetime
 
 FACE_DEFAULT_CASCADE = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_frontalface_default.xml"))
 FACE_ALT_TREE_CASCADE = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_frontalface_alt_tree.xml"))
@@ -169,23 +170,7 @@ def weight_cum_area(li):
     return sum([face[0] * face[1] for face in li])
 
 
-def get_rotation_model_one(picture):
-    """
-    Method can completely be challenged...
-    Will pretend 3 faces should be detected. If len < 3, just add 0s to the list
-    Average the size of the 3 biggest areas
-    """
-    summaries = picture.faces_per_rotation["summary"]
-    result = []
-    for summary in summaries:
-        result.append(weight_cum_area(summary))
-
-    index_correct_rotation = summary.index(max(summary))
-    rot90_predicted_num = faces_per_rotation["k"][index_correct_rotation]
-    return rot90_predicted_num, result
-
-
-def get_rotation_model_two(picture):
+def get_rotation_model(picture):
     """
     Args:
         picture: picture.faces_per_rotation especially
@@ -264,13 +249,13 @@ def get_rotation_model_two(picture):
     result.sort(key=lambda x: (-x[0], -x[1], x[2], -x[3]))
     # The 1st element of summary is now the "best" rotation config. Its index is stored in the last one element
     correct_index_rotation = result[0][-1]
-    rot90_predicted_num = faces_per_rotation["k"][correct_index_rotation]
+    rot90_predicted_num = picture.faces_per_rotation["k"][correct_index_rotation]
     picture.rot90_predicted_num = rot90_predicted_num
     picture.rot90_summary = result
     return rot90_predicted_num, result
 
 
-def get_log_rotation(picture: Picture, config_num, log: dict = None):
+def fill_log(picture, config_num, log_dict: dict):
     """
     This gets translated into a big dictionnary of lists - which will get printed in a log file
     It incrementally adds info to a previous dictionnary
@@ -283,24 +268,14 @@ def get_log_rotation(picture: Picture, config_num, log: dict = None):
         log : with the information of the input picture added
     """
 
-    if log is None:
-        log = {
-            "config_num": [],
-            "picture_name": [],
-            "rot90_true_num": [],
-            "rot90_predicted_num": [],
-            "success": [],
-            "rot90_summary": [],
-        }
+    log_dict["config_num"].append(config_num)
+    log_dict["picture_name"].append(picture.picture_name)
+    log_dict["rot90_true_num"].append(picture.rot90_true_num)
+    log_dict["rot90_predicted_num"].append(picture.rot90_predicted_num)
+    log_dict["success"].append(picture.rot90_true_num == picture.rot90_predicted_num)
+    log_dict["rot90_summary"].append(picture.rot90_summary)
 
-    log["config_num"].append(config_num)
-    log["picture_name"].append(picture.picture_name)
-    log["rot90_true_num"].append(picture.rot90_true_num)
-    log["rot90_predicted_num"].append(picture.rot90_predicted_num)
-    log["success"].append(picture.rot90_true_num == picture.rot90_predicted_num)
-    log["rot90_summary"].append(picture.rot90_summary)
-
-    return log
+    return log_dict
 
 
 def rotate_one(picture, show_steps=None):
@@ -315,33 +290,60 @@ def rotate_one(picture, show_steps=None):
         rotated pictured
     """
     get_faces_per_rotation(picture, dnn_model, show_steps=show_steps)
-    get_rotation_model_two(picture)
+    get_rotation_model(picture)
     print(picture.rot90_summary)
     print(f"{picture.picture_name} - Rotation needed : {picture.rot90_predicted_num} * 90 deg")
-    picture.img_rotated = picture.rotate_np()
+    picture.img_rotated = picture.rotate_np(picture.rot90_predicted_num)
     if show_steps == True:
         show(f"Rotated img - {picture.picture_name} - {picture.rot90_predicted_num} * 90 deg", picture.img_rotated)
 
 
-def main_rotate(picture_list=None, num_pic=None, log=None, show_steps=False):
+def rotate_all(picture_list=None, num_pic=None, log=None, show_steps=False):
     """
-    This
-    It incrementally adds info to a previous dictionnary
+    This does the rotation for 1 picture, a list of hardcoded picture, or n pictures in the CROPPED folder
 
     Args:
-        picture : to get the information from
-        log : dictionnary of info related to the rotation of 1 picture
+        picture_list : if not None, will execute the rotation only for the pictures in that list
+        num_pic : if not None, will execute the rotation for the [0:num_pictures] in the cropped folder
+        log : if True, fills and pushes the logs to the results_rotation.csv file
+        show_steps : if True, shows the steps of face detection for each rotation
 
     Returns :
         log : with the information of the input picture added
     """
+    if picture_list is not None:
+        pictures_to_process = picture_list
+    elif num_pic is not None:
+        pictures_to_process = sorted(os.listdir(CROPPED_DIR))[:num_pic]
+    else:
+        pictures_to_process = sorted(os.listdir(CROPPED_DIR))
+    print(pictures_to_process)
+    config_num = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    log_dict = {
+        "config_num": [],
+        "picture_name": [],
+        "rot90_true_num": [],
+        "rot90_predicted_num": [],
+        "success": [],
+        "rot90_summary": [],
+    }
+    for picture_name in pictures_to_process:
+        if picture_name.endswith(".jpg") or picture_name.endswith(".png"):
+            picture = Picture(picture_name)
+            rotate_one(picture, show_steps=show_steps)
+            log_dict = fill_log(picture, config_num, log_dict)
+    if log == True:
+        log_results(log_dict, "results_rotation.csv")
 
 
 if __name__ == "__main__":
+    rotate_all(num_pic=4, log=None, show_steps=None)
+    """
     picture = Picture(picture_name="mamie0014_01.jpg")
     print(picture.picture_name)
     faces_per_rotation = get_faces_per_rotation(picture, dnn_model, show_steps=True)
     print(picture.faces_per_rotation)
-    correct_k, result = get_rotation_model_two(picture)
+    correct_k, result = get_rotation_model(picture)
     print(picture.rot90_results)
     print(picture.rot90_optimal)
+    """
