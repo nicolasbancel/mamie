@@ -1,8 +1,13 @@
 import numpy as np
 from utils import *
 from utils_contour import *
+from Mosaic import *
 import cv2
 from statistics import mean
+from shapely.geometry import Polygon, LineString
+from shapely.ops import linemerge, unary_union, polygonize
+from shapely import Point, MultiPoint
+from sympy import symbols, Eq, solve
 
 CANVAS_ROWS = 6000
 CANVAS_COLUMNS = 6000
@@ -171,3 +176,165 @@ class Contour:
         show("Canvas with regular, scission, bad, and middle points", cv)
 
         return cv
+
+    def find_extrapolation(self):
+        """
+        For a given massive contour (interpreted as a polygon), with a scission point
+        The function determines the scission line associated, which would split the polygon into 2 parts
+        2 steps :
+        - Builds the intersection line - finds its parameters / equation
+        - Identifies the intersection point between the scission line and the polygon
+        - Splits the polygon
+        """
+        line = LineString([self.middle_point, self.scission_point])
+
+        # Line has equation
+        # Y = k*x + m
+
+        xa = self.middle_point[0]
+        ya = self.middle_point[1]
+
+        xb = self.scission_point[0]
+        yb = self.scission_point[1]
+
+        if xb != xa:
+            k = (yb - ya) / (xb - xa)
+            m = yb - k * xb
+
+            # Finding a coordinate Yc in the opposite direction of middle point. Which, starting from Scission point,
+            # has a norm that's equal to the max of the polygon line - which "ensures" there'll be an intersection
+            # yc
+            # xc
+
+            xc = symbols("xc")
+            eq = Eq(((k * xc + m) - yb) ** 2 + (xc - xb) ** 2 - self.max_side_length**2, 0)
+            solutions = solve(eq)
+
+            xc1 = solutions[0]
+            yc1 = k * xc1 + m
+
+            # pdb.set_trace()
+
+            c1 = [int(xc1), int(yc1)]
+
+            xc2 = solutions[1]
+            yc2 = k * xc2 + m
+
+            c2 = [int(xc2), int(yc2)]
+
+        else:
+            # The scission point is exactly vertical to the middle point
+            # equation of the line is x = xb
+
+            yc = symbols("yc")
+            eq = Eq((yc - yb) ** 2 - self.max_side_length**2, 0)
+
+            solutions = solve(eq)
+
+            c1 = [int(xb), int(solutions[0])]
+            c2 = [int(xb), int(solutions[1])]
+
+        ## There are 2 solutions to the equation (2 end points)
+        # One "after" the scission point, in the opposite side of the middle point :
+        #   - That's the one we want to keep : it will intersect with the polygon
+        # One "before" the scission point, in the same direction as the middle point
+        #   - That one will not intersect with the polygon : it will, but just at the scission point, which is redundant)
+
+        # Reference vector is thus the direction of middle -> scission
+        # We want the scission -> extrapolated to follow the same direction
+        vector_ref = self.scission_point - self.middle_point
+        vector_c1 = c1 - self.scission_point
+        vector_c2 = c2 - self.scission_point
+
+        if np.dot(vector_ref, vector_c1) > 0:
+            extrapolated_point = c1
+        else:
+            extrapolated_point = c2
+
+        self.extrapolated_point = extrapolated_point
+
+        return self.extrapolated_point
+
+    def split_contour(self, mosaic: Mosaic, canvas=None):
+        """
+        - Determine whether or not the line intersects the polygon
+            - Documentation : https://stackoverflow.com/questions/6050392/determine-if-a-line-segment-intersects-a-polygon
+        - Determine the intersection point + draws the splitting line
+        - Splits the polygon in halft
+        """
+        new_line = LineString([self.scission_point, self.extrapolated_point])
+        polygon = Polygon(self.points)
+
+        # FIND THE INTERSECTION
+
+        pdb.set_trace()
+
+        intersections = new_line.intersection(polygon)
+
+        # print(f"Type of the intersection : {type(intersections)}")
+
+        if type(intersections) == LineString:
+            # if type(intersections) == MultiPoint:
+            # if len(intersections) >= 2:
+
+            # There are 2 intersections. 1 is the scission point (since it's the starting point).
+            # The other is the interesting point
+
+            first_intersection = np.array([intersections.boundary.geoms[0].x, intersections.boundary.geoms[0].y], dtype=int)
+            second_intersection = np.array([intersections.boundary.geoms[1].x, intersections.boundary.geoms[1].y], dtype=int)
+
+            if (first_intersection == self.scission_point).all():
+                intersection_point = second_intersection
+            else:
+                intersection_point = first_intersection
+
+            if canvas is not None:
+                cv2.line(canvas, self.scission_point, self.extrapolated_point, (0, 255, 0), thickness=7)
+                cv2.circle(canvas, center=tuple(second_intersection), radius=20, color=(42, 35, 9), thickness=cv2.FILLED)
+                # show("Canvas", canvas)
+
+            splitting_line = LineString([self.middle_point, intersection_point])
+
+            # SPLIT THE POLYGON
+
+            merged = linemerge([polygon.boundary, new_line])
+            borders = unary_union(merged)
+            polygons = list(polygonize(borders))
+
+            # split_contours is a list of contours
+            # Polygons in Shapely repeat the first and last coordinate point
+            # We should avoid that - otherwise it counts 1 corner twice - hence we would get 5 corners recorded for a rectangle
+            split_contours = [np.array(list(pol.exterior.coords)[:-1], dtype=int) for pol in polygons]
+        else:
+            # This happens in scenario "mamie0047.jpg" where there's a scission point
+            # This scission point is on the complete edge of the polygon, has a long length, and
+            # does not intersect with the polygon
+            intersection_point = None
+            split_contours = [self.points]
+
+        self.intersection_point = intersection_point
+        self.split_contours = split_contours
+
+        original_copy = mosaic.img.copy()
+
+        for index, p in enumerate(split_contours):
+            cv2.drawContours(original_copy, [p], -1, COLOR_LIST[index], 40)
+            for point in p:
+                cv2.circle(original_copy, center=tuple(point), radius=20, color=(1, 0, 0), thickness=cv2.FILLED)
+
+        return split_contours, intersection_point
+
+
+if __name__ == "__main__":
+    # from Contour import *
+    # from Mosaic import *
+    mosaic_name = "mamie0009.jpg"
+    mosaic = Mosaic(mosaic_name)
+    find_contours(mosaic, retrieval_mode=cv2.RETR_EXTERNAL)
+    draw_main_contours(mosaic)
+    first_contour = mosaic.contours_main[0]
+    contour = Contour(first_contour)
+    contour.plot_angles()
+    contour.plot_points()
+    contour.find_extrapolation()
+    contour.split_contour(mosaic)
