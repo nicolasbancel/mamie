@@ -1,12 +1,5 @@
 from constant import *
-from main import *
 from utils import *
-from transfo import *
-from rotate import *
-
-# import imutils
-from PIL import Image
-import pdb
 
 
 ROTATION_METADATA = load_metadata(filename="rotation_metadata.csv")

@@ -1,11 +1,13 @@
 from constant import *
 from Mosaic import *
 from Contour import *
+
 from Picture import *
 from utils import *
 from utils_contour import *
 from typing import Literal
 from crop import *
+from rotate import *
 import argparse
 import pdb
 from datetime import datetime
@@ -86,7 +88,7 @@ def all_steps(mosaic_name, export_contoured="fail_only", export_cropped="all", e
             picture_name = mosaic.cropped_pictures["filename"][i]
             cv2_array = mosaic.cropped_pictures["img"][i]
             picture = Picture(picture_name, cv2_array)
-            rotate_one(picture)
+            rotate_one(picture, export_rotated=True, show_steps=True)
 
 
 if __name__ == "__main__":

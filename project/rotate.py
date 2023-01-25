@@ -30,7 +30,7 @@ NMS_THRESHOLD = 0.3
 TOP_K = 20
 
 
-def haar_model(Picture, k, model=FACE_DEFAULT_CASCADE, show_steps=None):
+def haar_model(picture, k, model=FACE_DEFAULT_CASCADE, show_steps=None):
     """
     Args:
         k :         rotation coefficient. If k = 1, img is rotated by 90°. k = 2, img is rotated by 180°
@@ -45,7 +45,7 @@ def haar_model(Picture, k, model=FACE_DEFAULT_CASCADE, show_steps=None):
     Source:
         https://docs.opencv.org/3.4/d1/de5/classcv_1_1CascadeClassifier.html#aaf8181cb63968136476ec4204ffca498
     """
-    img = Picture.resize(0.5)
+    img = picture.resize(0.5)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     faces = model.detectMultiScale(gray, 1.1, minNeighbors=5, minSize=(40, 40))
     x, y, w, h = 0, 0, 0, 0
@@ -129,7 +129,7 @@ def dnn_model(picture, k, model=YUNET_PATH, show_steps=None):
 
     cv2.putText(img_copy, f"Log of rotation {k} * 90°", org=TEXT_TITLE_POS, fontFace=TEXT_FONT, fontScale=2, color=(0, 0, 255), thickness=4)
     if show_steps == True:
-        show(f"{Picture.picture_name} - Detected faces", img_copy)
+        show(f"{picture.picture_name} - Detected faces", img_copy)
     return summary
 
 
@@ -279,7 +279,7 @@ def fill_log(picture, config_num, log_dict: dict):
     return log_dict
 
 
-def rotate_one(picture, export_rotated: Literal["all", "none"] = None, show_steps=None):
+def rotate_one(picture, export_rotated=None, show_steps=None):
     """
     All steps to rotate a picture (predict its rotation needed, and apply it)
 
