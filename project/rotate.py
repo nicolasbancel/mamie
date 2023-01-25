@@ -2,6 +2,7 @@ from Picture import *
 from utils import *
 import cv2
 from datetime import datetime
+from typing import Literal
 
 FACE_DEFAULT_CASCADE = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_frontalface_default.xml"))
 FACE_ALT_TREE_CASCADE = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_frontalface_alt_tree.xml"))
@@ -278,7 +279,7 @@ def fill_log(picture, config_num, log_dict: dict):
     return log_dict
 
 
-def rotate_one(picture, show_steps=None):
+def rotate_one(picture, export_rotated: Literal["all", "none"] = None, show_steps=None):
     """
     All steps to rotate a picture (predict its rotation needed, and apply it)
 
@@ -297,8 +298,12 @@ def rotate_one(picture, show_steps=None):
     if show_steps == True:
         show(f"Rotated img - {picture.picture_name} - {picture.rot90_predicted_num} * 90 deg", picture.img_rotated)
 
+    if export_rotated == True:
+        path = os.path.join(ROTATED_AUTO_DIR, picture.picture_name)
+        cv2.imwrite(path, picture.img_rotated)
 
-def rotate_all(picture_list=None, num_pic=None, log=None, show_steps=False):
+
+def rotate_all(picture_list=None, num_pic=None, log=None, show_steps=False, export_rotated=None):
     """
     This does the rotation for 1 picture, a list of hardcoded picture, or n pictures in the CROPPED folder
 
@@ -330,7 +335,7 @@ def rotate_all(picture_list=None, num_pic=None, log=None, show_steps=False):
     for picture_name in pictures_to_process:
         if picture_name.endswith(".jpg") or picture_name.endswith(".png"):
             picture = Picture(picture_name)
-            rotate_one(picture, show_steps=show_steps)
+            rotate_one(picture, export_rotated=export_rotated, show_steps=show_steps)
             log_dict = fill_log(picture, config_num, log_dict)
     if log == True:
         log_results(log_dict, "results_rotation.csv")

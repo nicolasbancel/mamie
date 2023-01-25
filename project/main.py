@@ -74,11 +74,11 @@ def get_contours(mosaic_name, export_contoured: Literal["all", "fail_only", "non
     return mosaic, message
 
 
-def all_steps(mosaic_name, export_contoured="fail_only", export_cropped="all"):
+def all_steps(mosaic_name, export_contoured="fail_only", export_cropped="all", export_rotated="all"):
     # Get all contour information
     mosaic, message = get_contours(mosaic_name, export_contoured)
     # Crop each contour, warpAffine it, and store the cropped images in a mosaic attribute
-    crop_mosaic(mosaic)
+    crop_mosaic(mosaic, export_cropped)
     # For each cropped Picture of the mosaic, get its correct rotation
     for i in range(mosaic.num_contours_final):
         picture_name = mosaic.cropped_pictures["filename"][i]
