@@ -12,7 +12,7 @@ CONTOUR_PRECISION_PARAM = 0.01
 
 def find_contours(mosaic, retrieval_mode=cv2.RETR_EXTERNAL):
     # cv2.RETR_EXTERNAL : external contours only
-    contours, hierarchy = cv2.findContours(mosaic.thresh.copy(), retrieval_mode, cv2.CHAIN_APPROX_NONE)
+    contours, hierarchy = cv2.findContours(mosaic.img_thresh.copy(), retrieval_mode, cv2.CHAIN_APPROX_NONE)
     mosaic.contours_all = contours
     return contours, hierarchy
 
@@ -57,7 +57,7 @@ def draw_main_contours(
     """
 
     # no_approx_main_contours : has no shape approximation
-    no_approx_main_contours = sorted([c for c in mosaic.contours if cv2.contourArea(c) > MIN_AREA_THRESHOLD], key=cv2.contourArea, reverse=True)
+    no_approx_main_contours = sorted([c for c in mosaic.contours_all if cv2.contourArea(c) > MIN_AREA_THRESHOLD], key=cv2.contourArea, reverse=True)
 
     contours_main = []
     num_rectangles = 0
@@ -89,11 +89,11 @@ def draw_main_contours(
 
     mosaic.contours_main = contours_main
     mosaic.img_w_main_contours = img_w_main_contours
-    mosaic.num_contours_total = len(mosaic.contours)
+    mosaic.num_contours_total = len(mosaic.contours_all)
     mosaic.num_contours_main = len(contours_main)
 
     message = {
-        "total_num_contours": len(mosaic.contours),
+        "total_num_contours": len(mosaic.contours_all),
         "num_biggest_contours": len(contours_main),
         "num_rectangles_before_split": num_rectangles,
         "photos_areas": contours_areas,
@@ -106,6 +106,18 @@ def draw_main_contours(
         show("Original w Main Contours", img_w_main_contours)
 
     return img_w_main_contours, contours_main, message
+
+
+def from_enriched_to_regular(enriched_contour):
+    contour = []
+
+    for point in enriched_contour:
+        x = int(point[0])
+        y = int(point[1])
+        contour.append([x, y])
+    contour = np.array(contour, dtype=np.int64)
+
+    return contour
 
 
 if __name__ == "__main__":

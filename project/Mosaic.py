@@ -12,14 +12,14 @@ class Mosaic:
         self.img_white_edges = self.whiten_edges()
         self.img_white_borders = self.add_borders()
         self.img_grey = self.grey_original()
-        self.img_blur = None
-        self.img_thresh = None
+        self.img_blur = cv2.GaussianBlur(self.img_grey, (3, 3), 0)
+        self.img_thresh = self.thresh()
         self.img_w_main_contours = None
         self.contours_all = None
         self.contours_main = None
 
-        self.num_contours_total = len(self.contours_all)
-        self.num_contours_main = len(self.contours_main)
+        self.num_contours_total = None
+        self.num_contours_main = None
 
     def whiten_edges(
         self,
@@ -67,11 +67,25 @@ class Mosaic:
             show("Grey image", img_grey)
         return img_grey
 
+    def thresh(self, show_image=False):
+        """
+        This does 2 things :
+        - It both blurs the image
+        - And it finds the threshold
+        """
+        img_thresh = cv2.threshold(self.img_blur, THRESH_MIN, THESH_MAX, cv2.THRESH_BINARY_INV)[1]
+        if show_image:
+            show("Image Threshold", img_thresh)
+        return img_thresh
+
 
 if __name__ == "__main__":
+    # from Mosaic import *
     mosaic_name = "mamie0009.jpg"
     mosaic = Mosaic(mosaic_name)
     show("Regular", mosaic.img)
     show("White edges", mosaic.img_white_edges)
     show("White border", mosaic.img_white_borders)
     show("Grey", mosaic.img_grey)
+    show("Blur", mosaic.img_blur)
+    show("Thresh", mosaic.img_thresh)

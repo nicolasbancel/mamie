@@ -1,8 +1,4 @@
-from transfo import *
-from contour import *
 from constant import *
-
-# import cv2
 import numpy as np
 import math
 from os import path
