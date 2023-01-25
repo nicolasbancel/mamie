@@ -19,7 +19,8 @@ def find_contours(mosaic, retrieval_mode=cv2.RETR_EXTERNAL):
 
 
 def draw_contours(mosaic, show_image=False):
-    img_w_contours = mosaic.img.copy()
+    # drawing contours is done on the modified image with added borders
+    img_w_contours = mosaic.img_source.copy()
     cv2.drawContours(img_w_contours, mosaic.contours, -1, (0, 255, 0), 30)
     # print("Number of contours identified: ", len(contours))
     if show_image:
@@ -78,7 +79,8 @@ def draw_main_contours(
             contours_main.append(screenCnt)
         # show the contour (outline)
 
-    img_w_main_contours = mosaic.img.copy()
+    # Drawing is done on the img with borders
+    img_w_main_contours = mosaic.img_source.copy()
 
     contours_areas = [cv2.contourArea(x) for x in contours_main]
 
@@ -105,21 +107,9 @@ def draw_main_contours(
     return img_w_main_contours, contours_main, message
 
 
-def from_enriched_to_regular(enriched_contour):
-    contour = []
-
-    for point in enriched_contour:
-        x = int(point[0])
-        y = int(point[1])
-        contour.append([x, y])
-    contour = np.array(contour, dtype=np.int64)
-
-    return contour
-
-
 def fix_contours(mosaic):
-    final_image = mosaic.img.copy()
-    final_contours = []
+    final_image = mosaic.img_source.copy()
+    contours_final = []
     color_index = 0
 
     for elem in mosaic.contours_main:
@@ -140,22 +130,15 @@ def fix_contours(mosaic):
             clean_contour = from_enriched_to_regular(contour.enriched)
             new_contours = [clean_contour]
         for cont in new_contours:
-            # print(f"Contour is too big - color index = {color_index}")
-            final_contours.append(cont)
+            contours_final.append(cont)
             draw(final_image, cont, color_index)
             color_index += 1
-        # elif contour_area > MIN_AREA_THRESHOLD and contour_area <= MAX_AREA_THRESHOLD:
-        # print(f"Contour has good shape - no need for split - color index = {color_index}")
-        # Reduce size of contour
-        # contour = contour[:, 0, :]
-        # final_contours.append(contour)
-        # draw(final_image, contour, color_index)
-        # color_index += 1
-
+    mosaic.contours_final = contours_final
+    mosaic.img_w_final_contours = final_image
     # UNCOMMENT FOR TESTING
-    # show("Final contours", final_image)
+    show("Final contours", final_image)
 
-    return final_contours, final_image
+    return contours_final, final_image
 
 
 if __name__ == "__main__":

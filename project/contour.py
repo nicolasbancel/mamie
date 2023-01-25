@@ -13,6 +13,18 @@ CANVAS_ROWS = 6000
 CANVAS_COLUMNS = 6000
 
 
+def from_enriched_to_regular(enriched_contour):
+    contour = []
+
+    for point in enriched_contour:
+        x = int(point[0])
+        y = int(point[1])
+        contour.append([x, y])
+    contour = np.array(contour, dtype=np.int64)
+
+    return contour
+
+
 class Contour:
     def __init__(self, np_array=None):
         self.points = np_array
@@ -319,7 +331,7 @@ class Contour:
         self.intersection_point = intersection_point
         self.split_contours = split_contours
 
-        original_copy = mosaic.img.copy()
+        original_copy = mosaic.img_source.copy()
 
         for index, p in enumerate(split_contours):
             cv2.drawContours(original_copy, [p], -1, COLOR_LIST[index], 40)
@@ -335,10 +347,15 @@ if __name__ == "__main__":
     mosaic_name = "mamie0009.jpg"
     mosaic = Mosaic(mosaic_name)
     find_contours(mosaic, retrieval_mode=cv2.RETR_EXTERNAL)
-    draw_main_contours(mosaic)
+    draw_main_contours(mosaic, show_image=True)
+    fix_contours(mosaic)
+
+    """
     first_contour = mosaic.contours_main[0]
     contour = Contour(first_contour)
     contour.plot_angles()
     contour.plot_points()
     contour.find_extrapolation()
     contour.split_contour(mosaic)
+    """
+    pass

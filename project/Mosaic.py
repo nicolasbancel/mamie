@@ -11,6 +11,10 @@ class Mosaic:
         self.img = load_original(mosaic_name, dir="source")
         self.img_white_edges = self.whiten_edges()
         self.img_white_borders = self.add_borders()
+        # Redundant img_source : but goal is to have img_source be the img
+        # we use as the original for all contour operations
+        # So better have a generic name
+        self.img_source = self.img_white_borders
         self.img_grey = self.grey_original()
         self.img_blur = cv2.GaussianBlur(self.img_grey, (3, 3), 0)
         self.img_thresh = self.thresh()
