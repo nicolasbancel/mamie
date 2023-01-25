@@ -293,6 +293,22 @@ def nothing(x):
     pass
 
 
+def find_shape_black_edge_printer():
+    """
+    Very specific to my use case
+    """
+    img = load_original(file_name="mamie0171.jpg", dir="source")
+    grey = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    num_rows, num_columns = grey.shape
+    copy = img.copy()
+    # img[row, column] - Hence accessing pixel is by img[Y, X] - which is different from circle
+    # circle: (X,Y)
+    for i in range(50):
+        print(f"Column (X) : {i} // Row (Y) : {num_rows-1} // Intensity={grey[num_rows-1,i]}")
+        cv2.circle(copy, (i, num_rows), radius=100, color=(0, 255, 0), thickness=-1)
+    show("Copy with green circles", copy)
+
+
 def initializeTrackbars(intialTracbarVals=0, threshold=True):
     cv2.namedWindow("Trackbars Window")
     if threshold:

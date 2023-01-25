@@ -41,3 +41,16 @@ tough_ones = ["mamie0003_01.jpg",
 rotate_all(picture_list=tough_ones, log=True, show_steps=True):
 
 ```
+
+## Scripts 
+
+- Run 
+
+# Cropping documentation
+
+- Not done well for
+  - `"mamie0022_02.jpg"`
+  - `"mamie0028_02.jpg"`
+  - `"mamie0038_01.jpg"`
+  - `"mamie0057_02.jpg"`
+

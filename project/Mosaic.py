@@ -23,14 +23,18 @@ class Mosaic:
         self.contours_all = None
         self.contours_main = None
         self.contours_final = None
-        self.cropped_images = None  # dictionnary of images that constitute the mosaic
+        self.cropped_pictures = None  # dictionnary of images that constitute the mosaic
 
         self.num_contours_total = None
-        self.num_contours_main = None
+        self.num_contours_main = None  # Biggest contours
+        self.num_contours_final = None
+        self.num_points_per_contour = None
+
+        self.success = None
 
     def whiten_edges(
         self,
-        thickness_vertical=15,
+        thickness_vertical=18,
         thickness_horizontal=25,
         color=(255, 255, 255),  # color=(0, 255, 0) for GREEN
         show_image=False,
