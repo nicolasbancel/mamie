@@ -8,6 +8,9 @@ from rotate import *
 from PIL import Image
 import pdb
 
+
+ROTATION_METADATA = load_metadata(filename="rotation_metadata.csv")
+
 FACE_DEFAULT_CASCADE = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_frontalface_default.xml"))
 FACE_ALT_TREE_CASCADE = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_frontalface_alt_tree.xml"))
 FACE_ALT_CASCADE = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_frontalface_alt.xml"))
@@ -45,9 +48,11 @@ class Picture:
         """
         self.img = cv2_array if cv2_array is not None else load_original(picture_name, dir="cropped")
         self.face_cascade = cv2.CascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_frontalface_default.xml"))
-        self.faces_per_rotation = None
-        self.rot90_optimal = None
-        self.rot90_results = None
+        self.faces_per_rotation = None  # Dict : for each rotation, logs all the info needed of all faces identified
+        self.rot90_predicted_num = None
+        self.rot90_true_num = ROTATION_METADATA.get(self.picture_name, "Unknown")
+        self.rot90_summary = None  # List : summary of 3 key metrics per rotation, used to determine the optimal one
+        self.img_rotated = None
         # self.eye_cascade = cv2.C
         # ascadeClassifier(os.path.join(OPENCV_DATA_DIR, "haarcascade_eye.xml"))
 
@@ -63,6 +68,9 @@ class Picture:
         new_width = int(self.img.shape[1] * scale)
         new_height = int(self.img.shape[0] * scale)
         return cv2.resize(self.img, (new_width, new_height))
+
+    def get_correct_k(self):
+        self.correct_k = ROTATION_METADATA.get(self.picture_name)
 
     def haar_model(self, k, model=FACE_DEFAULT_CASCADE, show_steps=None):
         """
