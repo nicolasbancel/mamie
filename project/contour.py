@@ -1,26 +1,30 @@
 import cv2
 from constant import *
+from Mosaic import *
+from utils import *
 import pdb
 
 
-def find_contours(source, retrieval_mode=cv2.RETR_EXTERNAL):
+CONTOUR_SIZE = 40
+CONTOUR_COLOR_DEFAULT = (0, 255, 0)
+CONTOUR_PRECISION_PARAM = 0.01
+
+
+def find_contours(mosaic, retrieval_mode=cv2.RETR_EXTERNAL):
     # cv2.RETR_EXTERNAL : external contours only
-    #
-    contours, hierarchy = cv2.findContours(source.copy(), retrieval_mode, cv2.CHAIN_APPROX_NONE)
+    contours, hierarchy = cv2.findContours(mosaic.thresh.copy(), retrieval_mode, cv2.CHAIN_APPROX_NONE)
+    mosaic.contours_all = contours
     return contours, hierarchy
 
 
-def draw_contours(original, contours, show_image=False):
-    original_with_contours = original.copy()
-    cv2.drawContours(original_with_contours, contours, -1, (0, 255, 0), 30)
+def draw_contours(mosaic, show_image=False):
+    img_w_contours = mosaic.img.copy()
+    cv2.drawContours(img_w_contours, mosaic.contours, -1, (0, 255, 0), 30)
     # print("Number of contours identified: ", len(contours))
     if show_image:
-        cv2.imshow("Output", original_with_contours)
-        cv2.waitKey()
-        cv2.destroyAllWindows()
-        cv2.waitKey(1)
+        show("Original with contours", img_w_contours)
 
-    return contours, original_with_contours
+    return img_w_contours
 
 
 def reshape_contour(contour):
@@ -28,27 +32,34 @@ def reshape_contour(contour):
 
 
 def draw_main_contours(
-    original,
-    contours,
-    contour_size,
-    contours_color,
-    precision_param=0.01,
-    only_rectangles=True,
-    show_image=True,
+    mosaic,
+    contour_size=CONTOUR_SIZE,
+    contours_color=CONTOUR_COLOR_DEFAULT,
+    precision_param=CONTOUR_PRECISION_PARAM,
+    only_rectangles=None,
+    show_image=None,
 ):
     """
-    precision_param=0.01 : very precise. Creates sharp angles, and prevents from identifying simple rectangles sometimes
-    https://docs.opencv.org/4.x/dd/d49/tutorial_py_contour_features.html
-    precision_param=0.1 : should approximate much more rectangles.
-    Although, it would prevent from splitting the "big picture in 2"
+    This does the rotation for 1 picture, a list of hardcoded picture, or n pictures in the CROPPED folder
 
+    Args:
+        mosaic :
+        contour_size : :   If not None, will execute the rotation for the [0:num_pictures] in the cropped folder
+        contours_color :   If True, fills and pushes the logs to the results_rotation.csv file
+        precision_param :  precision_param=0.01 : very precise. Creates sharp angles, and prevents from identifying simple rectangles sometimes
+                           https://docs.opencv.org/4.x/dd/d49/tutorial_py_contour_features.html
+                           precision_param=0.1 : should approximate much more rectangles.
+                           Although, it would prevent from splitting the "big picture in 2"
+        only_rectangles:   If True: would focus / draw only on polygons with 4 sides
+        show_image:        If True : shows the image
+
+    Returns :
     """
 
     # no_approx_main_contours : has no shape approximation
-    no_approx_main_contours = sorted([c for c in contours if cv2.contourArea(c) > MIN_AREA_THRESHOLD], key=cv2.contourArea, reverse=True)
+    no_approx_main_contours = sorted([c for c in mosaic.contours if cv2.contourArea(c) > MIN_AREA_THRESHOLD], key=cv2.contourArea, reverse=True)
 
-    #
-    main_contours = []
+    contours_main = []
     num_rectangles = 0
 
     for c in no_approx_main_contours:
@@ -65,34 +76,37 @@ def draw_main_contours(
             num_rectangles += 1
         if only_rectangles:
             if len(approx) == 4:
-                main_contours.append(screenCnt)
+                contours_main.append(screenCnt)
         else:
-            main_contours.append(screenCnt)
+            contours_main.append(screenCnt)
         # show the contour (outline)
 
-    original_with_main_contours = original.copy()
+    img_w_main_contours = mosaic.img.copy()
 
-    contours_areas = [cv2.contourArea(x) for x in main_contours]
+    contours_areas = [cv2.contourArea(x) for x in contours_main]
 
-    cv2.drawContours(original_with_main_contours, main_contours, -1, contours_color, contour_size)
+    cv2.drawContours(img_w_main_contours, contours_main, -1, contours_color, contour_size)
+
+    mosaic.contours_main = contours_main
+    mosaic.img_w_main_contours = img_w_main_contours
+    mosaic.num_contours_total = len(mosaic.contours)
+    mosaic.num_contours_main = len(contours_main)
 
     message = {
-        "total_num_contours": len(contours),
-        "num_biggest_contours": len(main_contours),
+        "total_num_contours": len(mosaic.contours),
+        "num_biggest_contours": len(contours_main),
         "num_rectangles_before_split": num_rectangles,
         "photos_areas": contours_areas,
     }
 
     # print(message)
-
-    # print("Number of contours identified: ", len(contours))
     # print(f"Out of {num_biggest_contours} biggest contours - {num_rectangles} are rectangles")
 
-    key = "init"
     if show_image:
-        cv2.imshow("Output - Biggest contours", original_with_main_contours)
-        cv2.waitKey()
-        cv2.destroyAllWindows()
-        key = cv2.waitKey(1)
+        show("Original w Main Contours", img_w_main_contours)
 
-    return original_with_main_contours, main_contours, key, message
+    return img_w_main_contours, contours_main, message
+
+
+if __name__ == "__main__":
+    pass

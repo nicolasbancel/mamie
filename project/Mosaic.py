@@ -12,6 +12,14 @@ class Mosaic:
         self.img_white_edges = self.whiten_edges()
         self.img_white_borders = self.add_borders()
         self.img_grey = self.grey_original()
+        self.img_blur = None
+        self.img_thresh = None
+        self.img_w_main_contours = None
+        self.contours_all = None
+        self.contours_main = None
+
+        self.num_contours_total = len(self.contours_all)
+        self.num_contours_main = len(self.contours_main)
 
     def whiten_edges(
         self,
