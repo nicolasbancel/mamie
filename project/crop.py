@@ -1,4 +1,6 @@
 from constant import *
+from Mosaic import *
+from Contour import *
 from pathlib import Path
 import numpy as np
 from utils import *
@@ -6,13 +8,14 @@ import pdb
 from Picture import *
 
 
-def extract_contour(original, contour):
+def extract_contour(mosaic, contour):
+    # Extracts the image delimited by a contour, from a mosaic
     # print(f"Printing contour # {idx + 1}")
-    mask = np.zeros_like(original)
+    mask = np.zeros_like(mosaic.img_source)
     # List of 1 element. Index -1 is for printing "all" elements of that list
     cv2.drawContours(mask, [contour], -1, (255, 255, 255), -1)
-    out = np.zeros_like(original)
-    out[mask == 255] = original[mask == 255]
+    out = np.zeros_like(mosaic.img_source)
+    out[mask == 255] = mosaic.img_source[mask == 255]
     # show("out", out)
     # np.where(mask == 255) results in a 3 dimensional array
     (y, x, z) = np.where(mask == 255)
@@ -26,23 +29,14 @@ def euc_dist(point1: tuple, point2: tuple):
     return np.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2)
 
 
-def warpAffine_contour_tobeexplored(original, contour):
-    """
-    https://github.com/sbrunner/deskew
-    Should explore approach with getRotationMatrix2D
-    Which was the original approach but couldn't fit in a rectangle
-    """
-    pass
-
-
-def warpAffine_contour(original, contour, show_image=False):
+def warpAffine_contour(mosaic, contour, show_image=None):
     """
     A lot inspired from : https://github.com/sebastiengilbert73/tutorial_affine_perspective/blob/main/compute_transforms.py
     https://towardsdatascience.com/perspective-versus-affine-transformation-25033cef5766
     """
-    orig_width, orig_height, _ = original.shape
-    warped = original.copy()
-    rectangle = cv2.minAreaRect(contour)
+    orig_width, orig_height, _ = mosaic.img_source.shape
+    warped = mosaic.img_source.copy()
+    rectangle = cv2.minAreaRect(contour.points)
     (center, (width, height), angle) = rectangle
     width_int = int(width)
     height_int = int(height)
@@ -81,10 +75,10 @@ def warpAffine_contour(original, contour, show_image=False):
         print(f"Width = {width_int} // Height = {height_int}\ndist_01 : {dist_01} - dist_12 : {dist_12}\ndist_23 : {dist_23} - dist_30 : {dist_30}")
 
     if show_image:
-        copy = original.copy()
+        copy = mosaic.img_source.copy()
         draw(copy, feature_points_int, color_index=0, show_points=True, show_index=True)
         draw(copy, warped_feature_points_int, color_index=0, show_points=True, show_index=True)
-        show("Copy with points", copy)
+        show("WarpAffine - Transformed Img", copy)
 
     # After drown : 0 : Top left. 1 : Top right. 2 : Bottom right. 3 : Bottom left
     # warped_feature_points = np.array([[100, 100], [100 + width_int, 100], [100 + width_int, 100 + height_int], [100, 100 + height_int]], dtype=np.float32)
@@ -93,9 +87,6 @@ def warpAffine_contour(original, contour, show_image=False):
     warped_feature_points_float = np.array(warped_feature_points_int, dtype=np.float32)
 
     affine_mtx = cv2.getAffineTransform(feature_points[:3, :], warped_feature_points_float[:3, :])
-
-    # warped_feature_points_newnew = np.array([[0, 0], [0 + width_int, 0], [0, 0 + height_int], [0 + width_int, 0 + height_int]], dtype=np.float32)
-    # affine_mtx = cv2.getAffineTransform(feature_points[:3, :], warped_feature_points_newnew[:3, :])
 
     warped_image_size = (width_int, height_int)
     output_img = cv2.warpAffine(warped, affine_mtx, dsize=warped_image_size)
@@ -106,46 +97,15 @@ def warpAffine_contour(original, contour, show_image=False):
     return output_img
 
 
-def warpAffine_contour_wrong(original, contour):
-    orig_width, orig_height, _ = original.shape
-    rectangle = cv2.minAreaRect(contour)
-    # The points below are in the configuration of the contour being part of the big "image" (original)
-    # When focused on the ROI, all coordinates get translated to the (0, 0) point
-    # width and height won't change, angle won't change
-    # Although center will change - and be centered around the center of the ROI
-    (center, (width, height), angle) = rectangle
-    rect_points = np.intp(cv2.boxPoints(rectangle))
-
-    x, y, w, h = cv2.boundingRect(rect_points)
-    bounding_rect_contour = np.array([[x, y], [x + w, y], [x + w, y + h], [x, y + h]])
-    roi = original[y : y + h, x : x + w]
-    roi_center = (int(w / 2), int(h / 2))
-
-    cv2.circle(roi, center=roi_center, radius=20, color=(0, 0, 0), thickness=cv2.FILLED)
-    show("roi", roi)
-
-    rot_matrix = cv2.getRotationMatrix2D(roi_center, -(90 - angle), scale=1)
-
-    # (w, h) : computes the transformation and fits inside a box of dimension (w, h), which is the dimension of the bounding rectangle
-    #          hence a rectangle which has greater dimensions that the actual picture
-    # (width, height) : computes the transformation to fit in a rectangle that has exactly the size of the picture
-
-    # DOES NOT WORK WELL
-    warpaffine = cv2.warpAffine(roi, rot_matrix, (int(height), int(width)))
-
-    # Fits bounding rectangle
-    warpaffine = cv2.warpAffine(roi, rot_matrix, (w, h))
-    show("Affine Transfo", warpaffine)
-
-
-def warpPerspective_contour(original, contour):
+def warpPerspective_contour(mosaic, contour, show_image=None):
     """
     Inspired from : https://theailearner.com/tag/opencv-rotation-angle/
     https://www.youtube.com/watch?v=SQ3D1tlCtNg&t=558s&ab_channel=GiovanniCode
 
     Loading the original is unnecessary
     """
-    rectangle = cv2.minAreaRect(contour)
+    original = mosaic.img_source
+    rectangle = cv2.minAreaRect(contour.points)
     (center, (width, height), angle) = rectangle
     rect_points = np.intp(cv2.boxPoints(rectangle))
 
@@ -204,34 +164,13 @@ def warpPerspective_contour(original, contour):
     matrix = cv2.getPerspectiveTransform(input_points, converted_points)
     output_img = cv2.warpPerspective(original, matrix, (max_width, max_height))
 
-    # show("Output Perspective", output_img)
-
-    """
-    Test : using angled transformation
-    
-    # Testing boundingRectangle (from Stack Overflow)
-    Y = max_height
-    X = max_width
-
-    x, y, w, h = cv2.boundingRect(rect_points)
-    roi = original[y : y + h, x : x + w]
-
-    # show("roi", roi)
-
-    warp_rotate_dst_yx = cv2.warpAffine(roi, rot_matrix, (Y, X))
-    show("Rotated", warp_rotate_dst_yx)
-
-    warp_rotate_dst_xy = cv2.warpAffine(roi, rot_matrix, (X, Y))
-    show("Rotated", warp_rotate_dst_xy)
-
-    # pivoted = cv2.warpAffine(copy, rot_matrix, (to_rotate.shape, flags=cv2.INTER_LINEAR)
-    pass
-    """
+    if show_image:
+        show("Output Perspective", output_img)
 
     return output_img
 
 
-def draw_rectangle_box(img, contour, rectangle):
+def draw_rectangle_box(original, contour):
     """
     The angle provided is the angle between first and last point of the contour
     So it's always a number between 0 and -90
@@ -256,86 +195,36 @@ def draw_rectangle_box(img, contour, rectangle):
     return copy
 
 
-def output(original, picture_name, contours: list, success: bool):
+def crop(mosaic, export=None):
     """
-    Takes 3 arguments :
-    - the original image
-    - the list of contours on that image
-    - whether the contours are well suited
+    Takes the mosaic as an input (with its final contours) :
+    - Does a warp affine transformation on each image within the contour
+    - Adds the final images (warped) to the Mosaic attributes
     """
-    if success == True:
+    cropped_images = dict({"filename": [], "img": []})
+    for idx, contour in enumerate(mosaic.contours_final):
+        # Option : before wrap
+        # output_img = extract_contour(original, contour)
+        output_img = warpAffine_contour(original, contour)
+        # Option below looses quality
+        # output_img = warpPerspective_contour(original, contour)
+        (filename, extension) = mosaic.mosaic_name.split(".")
+        if idx + 1 < 10:
+            suffix = "_0" + str(idx + 1)
+        else:
+            suffix = "_" + str(idx + 1)
+        new_filename = filename + suffix + "." + extension
 
-        for idx, contour in enumerate(contours):
+        cropped_images["filename"].append(new_filename)
+        cropped_images["img"].append(output_img)
+        mosaic.cropped_images = cropped_images
 
-            # Option : before wrap
-            # output_img = extract_contour(original, contour)
-
-            output_img = warpAffine_contour(original, contour)
-
-            # Option below looses quality
-            # output_img = warpPerspective_contour(original, contour)
-            # in case picture_name is provided as a path
-            # filename = Path(picture_name).stem
-            # pdb.set_trace()
-            (filename, extension) = picture_name.split(".")
-            if idx + 1 < 10:
-                suffix = "_0" + str(idx + 1)
-            else:
-                suffix = "_" + str(idx + 1)
-            new_filename = filename + suffix + "." + extension
+        if export == True:
             path = os.path.join(CROPPED_DIR, new_filename)
-
             cv2.imwrite(path, output_img)
 
-            print(f"Cropping done for image: {new_filename}")
-
-            """
-            # Starting the rotation
-            picture = Picture(picture_name=new_filename)
-            img_rotated = picture.rotate_image()
-            rotation_needed = picture.num_needed_rot90 * 90
-            rotated_filename = filename + suffix + "_" + str(rotation_needed) + "." + extension
-            rotated_path = os.path.join(ROTATED_DIR, rotated_filename)
-
-            cv2.imwrite(rotated_path, img_rotated)
-
-            print(f"Rotation done for image: {rotated_filename}")
-            """
+        print(f"Cropping done for image: {new_filename}")
 
 
 if __name__ == "__main__":
-    picture_name = "mamie0001.jpg"
-
-    # picture_name = "mamie0009.jpg"
-    # contour_index = 2
-    # Issue with picture mamie0009_03.jpg
-
-    # in ipython :
-    # from final import *
-    # picture_name = "mamie0009.jpg"
-
-    original, original_w_main_contours, original_w_final_contours, main_contours, final_contours, message = final_steps(
-        picture_name, THRESH_MIN, THESH_MAX, export="all"
-    )
-    copy = original.copy()
-    contour = final_contours[2]
-    draw(copy, final_contours[2], show_points=True, show_index=True)
-
-    success = message["success"] == True
-    show("copy contour", copy)
-    # export(original, picture_name, final_contours, success)
-
-"""
-## TEST END TO END
-from final import *
-
-picture_name = "mamie0009.jpg"
-original, original_w_main_contours, original_w_final_contours, main_contours, final_contours, message = final_steps(
-    picture_name, THRESH_MIN, THESH_MAX, export="all"
-)
-copy = original.copy()
-contour = final_contours[2]
-draw(copy, final_contours[2], show_points=True, show_index=True)
-success = message["success"] == True
-show("copy contour", copy)
-"""
+    pass

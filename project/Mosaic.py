@@ -23,6 +23,7 @@ class Mosaic:
         self.contours_all = None
         self.contours_main = None
         self.contours_final = None
+        self.cropped_images = None  # dictionnary of images that constitute the mosaic
 
         self.num_contours_total = None
         self.num_contours_main = None
