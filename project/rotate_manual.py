@@ -65,4 +65,7 @@ def rotate_manual_multiple(num_pictures: int = None, start_index=0, save_pic=Non
 
 if __name__ == "__main__":
     # Already done until 49. Will do 20 more
-    rotate_manual_multiple(num_pictures=20, start_index=49, save_pic=None)
+    # To know where to start : go to rotation_metadata.csv : row_number = 68 :
+    #  - means you've rotated 67 pictures (because of headers in the cvs)
+    #  - means you should start at index = 66
+    rotate_manual_multiple(num_pictures=10, start_index=66, save_pic=None)
