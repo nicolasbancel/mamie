@@ -337,7 +337,7 @@ def rotate_all(picture_list=None, num_pic=None, log=None, show_steps=False):
 
 
 if __name__ == "__main__":
-    rotate_all(num_pic=4, log=None, show_steps=None)
+    rotate_all(num_pic=10, log=None, show_steps=True)
     """
     picture = Picture(picture_name="mamie0014_01.jpg")
     print(picture.picture_name)

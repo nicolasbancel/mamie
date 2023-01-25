@@ -18,6 +18,23 @@ import pdb
 # (0, 255, 0) is GREEN
 
 
+def load_original(file_name, dir):
+    # mosaic_dir = os.path.join(Path.cwd().parent, "data/mosaic/")
+    # first_file = os.path.join(constant.MOSAIC_DIR, file_name)
+    # print(first_file)
+    # print(f"The mosaic directory is : {constant.MOSAIC_DIR}")
+    # print(f"The other mosaic directory is : {constant.MOSAIC_DIR_OTHER}")
+    # print(MOSAIC_DIR)
+    if dir == "source":
+        file_path = os.path.join(SOURCE_DIR, file_name)
+    elif dir == "contoured":
+        file_path = os.path.join(CONTOURED_DIR, file_name)
+    elif dir == "cropped":
+        file_path = os.path.join(CROPPED_DIR, file_name)
+    original = cv2.imread(file_path)
+    return original
+
+
 def load_metadata(filename):
     """
     Designed to load 2 types of files in dictionnary
@@ -29,6 +46,13 @@ def load_metadata(filename):
         next(reader, None)
         mapping = {rows[0]: int(rows[1]) for rows in reader}
     return mapping
+
+
+def show(title, image):
+    cv2.imshow(title, image)
+    cv2.waitKey()
+    cv2.destroyAllWindows()
+    cv2.waitKey(1)
 
 
 def draw(img, contour, color_index=0, show_points=True, show_index=False, legend: list = []):
