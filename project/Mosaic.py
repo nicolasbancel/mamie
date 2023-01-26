@@ -2,6 +2,9 @@ from utils import *
 
 
 MOSAIC_METADATA = load_metadata(filename="pictures_per_mosaic.csv")
+THICKNESS_HORIZONTAL = 25
+WHITE_TRIANGLE_HEIGHT = 6
+WHITE_TRIANGLE_LENGTH = 400
 
 
 class Mosaic:
@@ -10,6 +13,7 @@ class Mosaic:
         self.true_num_pictures = int(MOSAIC_METADATA[mosaic_name])
         self.img = load_original(mosaic_name, dir="source")
         self.img_white_edges = self.whiten_edges()
+        self.img_white_edgesxtriangle = self.whiten_triangle()
         self.img_white_borders = self.add_borders()
         # Redundant img_source : but goal is to have img_source be the img
         # we use as the original for all contour operations
@@ -34,8 +38,8 @@ class Mosaic:
 
     def whiten_edges(
         self,
-        thickness_vertical=18,
-        thickness_horizontal=25,
+        thickness_vertical=15,
+        thickness_horizontal=THICKNESS_HORIZONTAL,
         color=(255, 255, 255),  # color=(0, 255, 0) for GREEN
         show_image=False,
     ):
@@ -45,10 +49,10 @@ class Mosaic:
         bottom_right_vertical = (thickness_vertical, num_row)
         bottom_right_horizontal = (num_col, thickness_horizontal)
 
-        # Adding horizontal rectangle on top
+        # Adding vertical rectangle on the left
         cv2.rectangle(img_copy, top_left, bottom_right_vertical, color, -1)
 
-        # Adding vertical rectangle on the left
+        # Adding horizontal rectangle on top
         cv2.rectangle(img_copy, top_left, bottom_right_horizontal, color, -1)
 
         if show_image:
@@ -56,10 +60,35 @@ class Mosaic:
 
         return img_copy
 
+    def whiten_triangle(self, triangle_length=WHITE_TRIANGLE_LENGTH, triangle_height=WHITE_TRIANGLE_HEIGHT, color=(255, 255, 255), show_image=None):
+        """
+
+        Args:
+          Applies to image after addition of vertical and horizontal white edges
+          There is a black residual triangle that we'll replace with white
+        """
+        img_triangle = self.img_white_edges.copy()
+        num_rows, num_columns = img_triangle.shape[:2]
+
+        # Most left point of the triangle (tip is at -400 on X axis)
+        point_1 = (num_columns - WHITE_TRIANGLE_LENGTH, THICKNESS_HORIZONTAL + 1)
+        # Top right point
+        point_2 = (num_columns - 1, THICKNESS_HORIZONTAL + 1)
+        # Bottom right point
+        point_3 = (num_columns - 1, THICKNESS_HORIZONTAL + 1 + WHITE_TRIANGLE_HEIGHT)
+
+        triangle_cnt = np.array([point_1, point_2, point_3])
+
+        cv2.drawContours(img_triangle, [triangle_cnt], 0, color, -1)
+
+        if show_image == True:
+            show("With white edges + triangle", img_triangle)
+        return img_triangle
+
     def add_borders(self, color=(255, 255, 255), show_image=False):
         # This script assumes we're adding borders to an image where the edges have already been blanked
         # It applies to self.img_white_edges, not to self.img
-        source = self.img_white_edges
+        source = self.img_white_edgesxtriangle
         border_size = min(int(0.05 * source.shape[0]), int(0.05 * source.shape[1]))
         top = bottom = left = right = border_size
         borderType = cv2.BORDER_CONSTANT
