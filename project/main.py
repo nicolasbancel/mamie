@@ -118,7 +118,7 @@ def all_steps(mosaic_name, export_contoured=None, export_cropped=None, export_ro
 def main(
     mosaic_list=None,
     num_mosaics=None,
-    log_results=None,
+    log_contouring=None,
     export_contoured=None,  # should be "all", or "fail_only"
     export_cropped=None,
     export_rotated=None,
@@ -132,7 +132,11 @@ def main(
         # python3 final.py -m ["mamie0001.jpg"] to work and treat only 1 mosaic
         # python3 final.py -m ["mamie0008.jpg"]
         for mosaic_name in mosaic_list:
+            print(mosaic_name)
             mosaic, message = all_steps(mosaic_name, export_contoured, export_cropped, export_rotated, show_contouring, show_cropping, show_rotation)
+            for key in set(FINAL_MESSAGE) - {"config_num"}:
+                FINAL_MESSAGE[key].append(message[key])
+            FINAL_MESSAGE["config_num"].append(CONFIG_NUM)
     else:
         if num_mosaics is None:
             # Processing all mosaics
@@ -153,23 +157,24 @@ def main(
             else:
                 print(f"\n Time is : {dt} - Ignore - {mosaic_name} is not a picture file \n")
                 continue
-    if log_results == True:
+    if log_contouring == True:
         log_results(FINAL_MESSAGE, "results.csv")
 
 
 if __name__ == "__main__":
-    # python3 main.py -n 5 -log True -exco "fail_only" -excr True -exro True -shco True -shcr True -shro True
-    # all_steps("mamie0028.jpg")
+    # Show everything
+    # python3 main.py -n 4 -log_c -exco "fail_only" -excr -exro -shco -shcr -shro
 
-    # Example of execution plan
-    # python3 final.py -n 20 OR
-    # python3 final.py OR
-    # python3 final.py -i "mamie0001.jpg" OR
-    # python3 final.py -log True
+    # Show contouring, do not show cropping and rotation steps. Export data
+    # python3 main.py -n 2 -log_c -exco "fail_only" -excr -exro -shco --no-show_cropping --no-show_rotation
+
+    # Test with long list
+    # python3 main.py -m "mamie0003.jpg" "mamie0000.jpg" "mamie0001.jpg" -log_c -exco "fail_only" -excr -exro --no-show_contouring --no-show_cropping --no-show_rotation
+
     ap = argparse.ArgumentParser()
-    ap.add_argument("-m", "--mosaic_list", required=False, help="Name of mosaic - located in source dir")
+    ap.add_argument("-m", "--mosaic_list", nargs="+", required=False, help="Name of mosaic - located in source dir")
     ap.add_argument("-n", "--num_mosaics", required=False, type=int, help="Number of mosaics to process")
-    ap.add_argument("-log", "--log_results", action=argparse.BooleanOptionalAction, help="Whether or not results should be logged in results.csv")
+    ap.add_argument("-log_c", "--log_contouring", action=argparse.BooleanOptionalAction, help="Whether or not results should be logged in results.csv")
     ap.add_argument(
         "-exco", "--export_contoured", required=False, choices=["all", "fail_only", "none"], help="Whether the script should export the contoured .jpg"
     )
@@ -178,18 +183,11 @@ if __name__ == "__main__":
     ap.add_argument("-shco", "--show_contouring", action=argparse.BooleanOptionalAction, help="Whether the script should show images of steps for contouring")
     ap.add_argument("-shcr", "--show_cropping", action=argparse.BooleanOptionalAction, help="Whether the script should show images of steps for cropping")
     ap.add_argument("-shro", "--show_rotation", action=argparse.BooleanOptionalAction, help="Whether the script should show images of steps for rotating")
-    """
-    ap.add_argument("-excr", "--export_cropped", required=False, nargs="?", const=False, help="Whether the script should export the cropped pictures")
-    ap.add_argument("-exro", "--export_rotated", required=False, nargs="?", const=False, help="Whether the script should export the rotated pictures")
-    ap.add_argument("-shco", "--show_contouring", required=False, nargs="?", const=False, help="Whether the script should show images of steps for contouring")
-    ap.add_argument("-shcr", "--show_cropping", required=False, nargs="?", const=False, help="Whether the script should show images of steps for cropping")
-    ap.add_argument("-shro", "--show_rotation", required=False, nargs="?", const=False, help="Whether the script should show images of steps for rotating")
-    """
     args = vars(ap.parse_args())
 
     mosaic_list = args["mosaic_list"]
     num_mosaics = args["num_mosaics"]
-    log_results = args["log_results"]
+    log_contouring = args["log_contouring"]
     export_contoured = args["export_contoured"]
     export_cropped = args["export_cropped"]
     export_rotated = args["export_rotated"]
@@ -200,7 +198,7 @@ if __name__ == "__main__":
     print(
         f"mosaic_list : {mosaic_list} \
 // num_mosaics : {num_mosaics} \
-// log_results : {log_results} \
+// log_contouring : {log_contouring} \
 // export_contoured : {export_contoured} \
 // export_cropped : {export_cropped} \
 // export_rotated : {export_rotated} \
@@ -209,4 +207,4 @@ if __name__ == "__main__":
 // show_rotation: {show_rotation}"
     )
 
-    main(mosaic_list, num_mosaics, log_results, export_contoured, export_cropped, export_rotated, show_contouring, show_cropping, show_rotation)
+    main(mosaic_list, num_mosaics, log_contouring, export_contoured, export_cropped, export_rotated, show_contouring, show_cropping, show_rotation)
