@@ -17,7 +17,7 @@ from datetime import datetime
 # python3 final.py --image "mamie0008.jpg"
 #############################################
 
-FINAL_MESSAGE = {
+FINAL_LOG_CONTOURS = {
     "execution_time": [],
     "total_num_contours": [],
     "num_biggest_contours": [],
@@ -39,6 +39,17 @@ FINAL_MESSAGE = {
     "num_points_per_contour": [],
     "config_num": [],
 }
+
+FINAL_LOG_ROTATIONS = {
+    "config_num": [],
+    "picture_name": [],
+    "rot90_true_num": [],
+    "rot90_predicted_num": [],
+    "success": [],
+    "rot90_summary": [],
+}
+
+EXECUTION_TIME = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
 
 def get_contours(mosaic_name, export_contoured: Literal["all", "fail_only", "none"] = None, show_image=None):
@@ -102,23 +113,34 @@ def get_contours(mosaic_name, export_contoured: Literal["all", "fail_only", "non
 
 def all_steps(mosaic_name, export_contoured=None, export_cropped=None, export_rotated=None, show_contouring=None, show_cropping=None, show_rotation=None):
     # Get all contour information
-    mosaic, message = get_contours(mosaic_name, export_contoured=export_contoured, show_image=show_contouring)
+    mosaic, log_contours = get_contours(mosaic_name, export_contoured=export_contoured, show_image=show_contouring)
     # Crop each contour, warpAffine it, and store the cropped images in a mosaic attribute
     if mosaic.success == True:
         crop_mosaic(mosaic, export_cropped=export_cropped, show_image=show_cropping)
         # For each cropped Picture of the mosaic, get its correct rotation
+        log_dict = {
+            "config_num": [],
+            "picture_name": [],
+            "rot90_true_num": [],
+            "rot90_predicted_num": [],
+            "success": [],
+            "rot90_summary": [],
+        }
         for i in range(mosaic.num_contours_final):
             picture_name = mosaic.cropped_pictures["filename"][i]
             cv2_array = mosaic.cropped_pictures["img"][i]
             picture = Picture(picture_name=picture_name, cv2_array=cv2_array)
             rotate_one(picture, export_rotated=export_rotated, show_steps=show_rotation)
-    return mosaic, message
+            log_rotations = fill_log(picture, EXECUTION_TIME, log_dict)
+            print(log_rotations)
+    return mosaic, log_contours, log_rotations
 
 
 def main(
     mosaic_list=None,
     num_mosaics=None,
     log_contouring=None,
+    log_rotations=None,
     export_contoured=None,  # should be "all", or "fail_only"
     export_cropped=None,
     export_rotated=None,
@@ -128,37 +150,37 @@ def main(
 ):
     CONFIG_NUM = config_num()
     if mosaic_list is not None:
-        # Enables :
-        # python3 final.py -m ["mamie0001.jpg"] to work and treat only 1 mosaic
-        # python3 final.py -m ["mamie0008.jpg"]
-        for mosaic_name in mosaic_list:
-            print(mosaic_name)
-            mosaic, message = all_steps(mosaic_name, export_contoured, export_cropped, export_rotated, show_contouring, show_cropping, show_rotation)
-            for key in set(FINAL_MESSAGE) - {"config_num"}:
-                FINAL_MESSAGE[key].append(message[key])
-            FINAL_MESSAGE["config_num"].append(CONFIG_NUM)
+        mosaics_to_process = mosaic_list
+    elif num_mosaics is not None:
+        max_index = num_mosaics if num_mosaics < len(os.listdir(SOURCE_DIR)) else len(os.listdir(SOURCE_DIR)) - 1
+        mosaics_to_process = sorted(os.listdir(SOURCE_DIR))[:max_index]
     else:
-        if num_mosaics is None:
-            # Processing all mosaics
-            mosaics_to_process = sorted(os.listdir(SOURCE_DIR))
-        else:
-            max_index = num_mosaics if num_mosaics < len(os.listdir(SOURCE_DIR)) else len(os.listdir(SOURCE_DIR)) - 1
-            mosaics_to_process = sorted(os.listdir(SOURCE_DIR))[:max_index]
+        mosaics_to_process = sorted(os.listdir(SOURCE_DIR))
 
-        for mosaic_name in mosaics_to_process:
-            now = datetime.now()
-            dt = now.strftime("%H:%M:%S")
-            if mosaic_name.endswith(".jpg") or mosaic_name.endswith(".png"):
-                print(f"\n Time is : {dt} - Treating : {mosaic_name} \n")
-                mosaic, message = all_steps(mosaic_name, export_contoured, export_cropped, export_rotated, show_contouring, show_cropping, show_rotation)
-                for key in set(FINAL_MESSAGE) - {"config_num"}:
-                    FINAL_MESSAGE[key].append(message[key])
-                FINAL_MESSAGE["config_num"].append(CONFIG_NUM)
-            else:
-                print(f"\n Time is : {dt} - Ignore - {mosaic_name} is not a picture file \n")
-                continue
+    for mosaic_name in mosaics_to_process:
+        now = datetime.now()
+        dt = now.strftime("%H:%M:%S")
+        if mosaic_name.endswith(".jpg") or mosaic_name.endswith(".png"):
+            print(f"\n Time is : {dt} - Treating : {mosaic_name} \n")
+            mosaic, log_contours, log_rotations = all_steps(
+                mosaic_name, export_contoured, export_cropped, export_rotated, show_contouring, show_cropping, show_rotation
+            )
+            for key in set(FINAL_LOG_CONTOURS) - {"config_num"}:
+                FINAL_LOG_CONTOURS[key].append(log_contours[key])
+            FINAL_LOG_CONTOURS["config_num"].append(CONFIG_NUM)
+            for k in set(FINAL_LOG_ROTATIONS):
+                # Need extend because after each mosaic run, we get a list of rotations x pictures
+                FINAL_LOG_ROTATIONS[k].extend(log_rotations[k])
+            print(f"Final Log rotations : {FINAL_LOG_ROTATIONS}")
+        else:
+            print(f"\n Time is : {dt} - Ignore - {mosaic_name} is not a picture file \n")
+            continue
     if log_contouring == True:
-        log_results(FINAL_MESSAGE, "results.csv")
+        print(FINAL_LOG_CONTOURS)
+        log_results(FINAL_LOG_CONTOURS, "results_contours.csv")
+    if log_rotations == True:
+        print(FINAL_LOG_ROTATIONS)
+        log_results(FINAL_LOG_ROTATIONS, "results_rotations.csv")
 
 
 if __name__ == "__main__":
@@ -174,7 +196,8 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("-m", "--mosaic_list", nargs="+", required=False, help="Name of mosaic - located in source dir")
     ap.add_argument("-n", "--num_mosaics", required=False, type=int, help="Number of mosaics to process")
-    ap.add_argument("-log_c", "--log_contouring", action=argparse.BooleanOptionalAction, help="Whether or not results should be logged in results.csv")
+    ap.add_argument("-log_c", "--log_contouring", action=argparse.BooleanOptionalAction, help="Whether or not results should be logged in results_contours.csv")
+    ap.add_argument("-log_r", "--log_rotations", action=argparse.BooleanOptionalAction, help="Whether or not results should be logged in results_rotations.csv")
     ap.add_argument(
         "-exco", "--export_contoured", required=False, choices=["all", "fail_only", "none"], help="Whether the script should export the contoured .jpg"
     )
@@ -188,6 +211,7 @@ if __name__ == "__main__":
     mosaic_list = args["mosaic_list"]
     num_mosaics = args["num_mosaics"]
     log_contouring = args["log_contouring"]
+    log_rotations = args["log_rotations"]
     export_contoured = args["export_contoured"]
     export_cropped = args["export_cropped"]
     export_rotated = args["export_rotated"]
@@ -199,6 +223,7 @@ if __name__ == "__main__":
         f"mosaic_list : {mosaic_list} \
 // num_mosaics : {num_mosaics} \
 // log_contouring : {log_contouring} \
+// log_rotations : {log_rotations} \
 // export_contoured : {export_contoured} \
 // export_cropped : {export_cropped} \
 // export_rotated : {export_rotated} \
@@ -207,4 +232,6 @@ if __name__ == "__main__":
 // show_rotation: {show_rotation}"
     )
 
-    main(mosaic_list, num_mosaics, log_contouring, export_contoured, export_cropped, export_rotated, show_contouring, show_cropping, show_rotation)
+    main(
+        mosaic_list, num_mosaics, log_contouring, log_rotations, export_contoured, export_cropped, export_rotated, show_contouring, show_cropping, show_rotation
+    )

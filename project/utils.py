@@ -223,7 +223,7 @@ def log_results(message: dict, result_file_name):
 
     new_message = message.copy()
     csv_headers = list(new_message.keys())
-    print(csv_headers)
+    # print(csv_headers)
     # writer = csv.DictWriter(w, fieldnames=csv_headers)
     num_rows_to_insert = len(new_message["config_num"])
     print(num_rows_to_insert)
