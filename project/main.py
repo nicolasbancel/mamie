@@ -160,14 +160,41 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("-m", "--mosaic_list", required=False, help="Name of mosaic - located in source dir")
     ap.add_argument("-n", "--num_mosaics", required=False, type=int, help="Number of mosaics to process")
-    ap.add_argument("-log", "--log_results", required=False, nargs="?", const=False, help="Whether or not results should be logged in results.csv")
+    ap.add_argument("-log", "--log_results", required=True, nargs="?", const=False, help="Whether or not results should be logged in results.csv")
+    ap.add_argument(
+        "-exco", "--export_contoured", required=False, choices=["all", "fail_only", "none"], help="Whether the script should export the contoured .jpg"
+    )
+    ap.add_argument("-excr", "--export_cropped", required=False, nargs="?", const=False, help="Whether the script should export the cropped pictures")
+    ap.add_argument("-exro", "--export_rotated", required=False, nargs="?", const=False, help="Whether the script should export the rotated pictures")
+    ap.add_argument("-shco", "--show_contouring", required=False, nargs="?", const=False, help="Whether the script should show images of steps for contouring")
+    ap.add_argument("-shcr", "--show_cropping", required=False, nargs="?", const=False, help="Whether the script should show images of steps for cropping")
+    ap.add_argument("-shco", "--show_rotation", required=False, nargs="?", const=False, help="Whether the script should show images of steps for rotating")
     args = vars(ap.parse_args())
 
     mosaic_list = args["mosaic_list"]
     num_mosaics = args["num_mosaics"]
     log_results = args["log_results"]
+    export_contoured = args["export_contoured"]
+    export_cropped = args["export_cropped"]
+    export_rotated = args["export_rotated"]
+    show_contouring = args["show_contouring"]
+    show_cropping = args["show_cropping"]
+    show_rotation = args["show_rotation"]
 
-    print(f"mosaic_list : {mosaic_list} // num_mosaics : {num_mosaics} // log_results : {log_results}")
+    #print(f"mosaic_list : {mosaic_list} // num_mosaics : {num_mosaics} // log_results : {log_results}")
+    
+    main(
+        mosaic_list,
+        num_mosaics
+        log_results,
+        export_contoured,
+        export_cropped,
+        export_rotated,
+        show_contouring,
+        show_cropping,
+        show_rotation,
+    )
+
     # all_steps("mamie0028.jpg")
 
     # Example of execution plan
