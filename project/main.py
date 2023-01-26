@@ -17,6 +17,29 @@ from datetime import datetime
 # python3 final.py --image "mamie0008.jpg"
 #############################################
 
+FINAL_MESSAGE = {
+    "execution_time": [],
+    "total_num_contours": [],
+    "num_biggest_contours": [],
+    "num_rectangles_before_split": [],
+    "photos_areas": [],
+    "success": [],
+    "picture_name": [],
+    "rm_black_edges": [],
+    "add_white_margin": [],
+    "blur_method": [],
+    "blur_parameters": [],
+    "threshold": [],
+    "threshold_method": [],
+    "threshold_min": [],
+    "threshold_max": [],
+    "split_contours": [],
+    "true_num_pictures": [],
+    "num_contours_after_split": [],
+    "num_points_per_contour": [],
+    "config_num": [],
+}
+
 
 def get_contours(mosaic_name, export_contoured: Literal["all", "fail_only", "none"] = None, show_image=None):
     MAPPING_DICT = load_metadata(filename="pictures_per_mosaic.csv")
@@ -77,114 +100,78 @@ def get_contours(mosaic_name, export_contoured: Literal["all", "fail_only", "non
     return mosaic, message
 
 
-def all_steps(mosaic_name, export_contoured="fail_only", export_cropped=True, export_rotated=True):
+def all_steps(mosaic_name, export_contoured=None, export_cropped=None, export_rotated=None, show_contouring=None, show_cropping=None, show_rotation=None):
     # Get all contour information
-    mosaic, message = get_contours(mosaic_name, export_contoured=export_contoured, show_image=True)
+    mosaic, message = get_contours(mosaic_name, export_contoured=export_contoured, show_image=show_contouring)
     # Crop each contour, warpAffine it, and store the cropped images in a mosaic attribute
     if mosaic.success == True:
-        crop_mosaic(mosaic, export_cropped=export_cropped, show_image=False)
+        crop_mosaic(mosaic, export_cropped=export_cropped, show_image=show_cropping)
         # For each cropped Picture of the mosaic, get its correct rotation
         for i in range(mosaic.num_contours_final):
             picture_name = mosaic.cropped_pictures["filename"][i]
             cv2_array = mosaic.cropped_pictures["img"][i]
             picture = Picture(picture_name=picture_name, cv2_array=cv2_array)
-            rotate_one(picture, export_rotated=export_rotated, show_steps=True)
-            print(vars(picture))
+            rotate_one(picture, export_rotated=export_rotated, show_steps=show_rotation)
 
 
-def main():
-    pass
-
-
-if __name__ == "__main__":
-    all_steps("mamie0028.jpg")
-
-    # Example of execution plan
-    # python3 final.py -n 20 OR
-    # python3 final.py OR
-    # python3 final.py -i "mamie0001.jpg" OR
-    # python3 final.py -log True
-
-    """
-
-    ap = argparse.ArgumentParser()
-    ap.add_argument("-i", "--image", required=False, help="Name of image - located in mosaic dir")
-    ap.add_argument("-n", "--num_mosaics", required=False, type=int, help="Number of mosaics to process")
-    ap.add_argument("-log", "--log_results", required=False, nargs="?", const=False, help="Whether or not results should be logged in results.csv")
-    args = vars(ap.parse_args())
-
-    # print(args["image"])
-    # print(len(args))
-
+def main(
+    mosaic_list=None,
+    num_mosaics=None,
+    log_results=None,
+    export_contoured="all",
+    export_cropped=True,
+    export_rotated=True,
+    show_contouring=None,
+    show_cropping=None,
+    show_rotation=None,
+):
     CONFIG_NUM = config_num()
-    FINAL_MESSAGE = {
-        "execution_time": [],
-        "total_num_contours": [],
-        "num_biggest_contours": [],
-        "num_rectangles_before_split": [],
-        # "num_detected_photos_on_mosaic": [],
-        # "num_photos_on_mosaic": [],
-        "photos_areas": [],
-        "success": [],
-        "picture_name": [],
-        "rm_black_edges": [],
-        "add_white_margin": [],
-        "blur_method": [],
-        "blur_parameters": [],
-        "threshold": [],
-        "threshold_method": [],
-        "threshold_min": [],
-        "threshold_max": [],
-        "split_contours": [],
-        "true_num_pictures": [],
-        "num_contours_after_split": [],
-        "num_points_per_contour": [],
-        "config_num": [],
-    }
-
-    picture_name = args["image"]
-
-    if picture_name is not None:
+    if mosaic_list is not None:
         # Enables :
-        # python3 final.py -i "mamie0001.jpg" to work and display only 1 image
-        # python3 final.py -i "mamie0008.jpg"
-        original, original_w_main_contours, original_w_final_contours, main_contours, final_contours, message = final_steps(
-            picture_name, THRESH_MIN, THESH_MAX, export="all"
-        )
-        success = message["success"]
-        output(original, picture_name, final_contours, success)
-        # pdb.set_trace()
+        # python3 final.py -m ["mamie0001.jpg"] to work and treat only 1 mosaic
+        # python3 final.py -m ["mamie0008.jpg"]
+        for mosaic_name in mosaic_list:
+            all_steps(mosaic_name, export_contoured, export_cropped, export_rotated, show_contouring, show_cropping, show_rotation)
     else:
-        "Iterate through all images + log in the results.csv file"
-        # for file in os.listdir(SOURCE_DIR)[6:12]:
-        if args["num_mosaics"] is None:
-            # print(f"Will process all images")
-
-            # mosaics_to_process = sorted(os.listdir(SOURCE_DIR))
-            mosaics_to_process = sorted(os.listdir(SOURCE_DIR))[67:]
+        if num_mosaics is None:
+            # Processing all mosaics
+            mosaics_to_process = sorted(os.listdir(SOURCE_DIR))
         else:
-            print(f"Will process images from index 0 until {args['num_mosaics'] - 1}")
-            mosaics_to_process = sorted(os.listdir(SOURCE_DIR))[: args["num_mosaics"]]
-        for file in mosaics_to_process:
+            max_index = num_mosaics if num_mosaics < len(os.listdir(SOURCE_DIR)) else len(os.listdir(SOURCE_DIR)) - 1
+            mosaics_to_process = sorted(os.listdir(SOURCE_DIR))[:max_index]
+
+        for mosaic in mosaics_to_process:
             now = datetime.now()
             dt = now.strftime("%H:%M:%S")
-            filename = os.fsdecode(file)
-            if filename.endswith(".jpg") or filename.endswith(".png"):
-                print(f"\n Time is : {dt} - Extracting contours of file : {filename} \n")
-                original, original_w_main_contours, original_w_final_contours, main_contours, final_contours, message = final_steps(
-                    filename, THRESH_MIN, THESH_MAX, export="all"
-                )
-                success = message["success"]
-
-                output(original, filename, final_contours, success)
-
+            if mosaic.endswith(".jpg") or mosaic.endswith(".png"):
+                print(f"\n Time is : {dt} - Treating : {mosaic} \n")
+                all_steps(mosaic_name, export_contoured, export_cropped, export_rotated, show_contouring, show_cropping, show_rotation)
                 for key in set(FINAL_MESSAGE) - {"config_num"}:
                     FINAL_MESSAGE[key].append(message[key])
                 FINAL_MESSAGE["config_num"].append(CONFIG_NUM)
             else:
                 print(f"\n Time is : {dt} - Ignore - {filename} is not a picture file \n")
                 continue
-        # print(args["log_results"]) is None when not provided
-        if args["log_results"] == True:
-            log_results(FINAL_MESSAGE, "results.csv")
-    """
+    if log_results == True:
+        log_results(FINAL_MESSAGE, "results.csv")
+
+
+if __name__ == "__main__":
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-m", "--mosaic_list", required=False, help="Name of mosaic - located in source dir")
+    ap.add_argument("-n", "--num_mosaics", required=False, type=int, help="Number of mosaics to process")
+    ap.add_argument("-log", "--log_results", required=False, nargs="?", const=False, help="Whether or not results should be logged in results.csv")
+    args = vars(ap.parse_args())
+
+    mosaic_list = args["mosaic_list"]
+    num_mosaics = args["num_mosaics"]
+    log_results = args["log_results"]
+
+    print(f"mosaic_list : {mosaic_list} // num_mosaics : {num_mosaics} // log_results : {log_results}")
+    # all_steps("mamie0028.jpg")
+
+    # Example of execution plan
+    # python3 final.py -n 20 OR
+    # python3 final.py OR
+    # python3 final.py -i "mamie0001.jpg" OR
+    # python3 final.py -log True

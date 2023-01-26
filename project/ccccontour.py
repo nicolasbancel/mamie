@@ -281,8 +281,6 @@ class Contour:
 
         # FIND THE INTERSECTION
 
-        pdb.set_trace()
-
         intersections = new_line.intersection(polygon)
 
         # print(f"Type of the intersection : {type(intersections)}")
