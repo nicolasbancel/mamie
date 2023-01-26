@@ -79,7 +79,7 @@ def warpAffine_contour(mosaic, contour, show_image=None):
         copy = mosaic.img_source.copy()
         draw(copy, feature_points_int, color_index=0, show_points=True, show_index=True)
         draw(copy, warped_feature_points_int, color_index=0, show_points=True, show_index=True)
-        show(f"{mosaic.mosaic_name} - WarpAffine - Transformed Img", copy)
+        show(f"{mosaic.mosaic_name} - WarpAffine - Source & Target shapes", copy)
 
     # After drown : 0 : Top left. 1 : Top right. 2 : Bottom right. 3 : Bottom left
     # warped_feature_points = np.array([[100, 100], [100 + width_int, 100], [100 + width_int, 100 + height_int], [100, 100 + height_int]], dtype=np.float32)
@@ -93,7 +93,7 @@ def warpAffine_contour(mosaic, contour, show_image=None):
     output_img = cv2.warpAffine(warped, affine_mtx, dsize=warped_image_size)
 
     if show_image:
-        show(f"{mosaic.mosaic_name} - WarpAffine", output_img)
+        show(f"{mosaic.mosaic_name} - WarpAffine completed", output_img)
 
     return output_img
 

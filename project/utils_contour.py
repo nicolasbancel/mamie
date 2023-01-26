@@ -100,7 +100,7 @@ def draw_main_contours(
     # print(f"Out of {num_biggest_contours} biggest contours - {num_rectangles} are rectangles")
 
     if show_image:
-        show("Original w Main Contours", img_w_main_contours)
+        show(f"{mosaic.mosaic_name} - Original w Main Contours", img_w_main_contours)
 
     return message
 
@@ -135,7 +135,7 @@ def fix_contours(mosaic):
     mosaic.num_contours_final = len(contours_final)
     mosaic.img_w_final_contours = final_image
     # UNCOMMENT FOR TESTING
-    show("Final contours", final_image)
+    show(f"{mosaic.mosaic_name} - Final contours", final_image)
 
     return contours_final, final_image
 

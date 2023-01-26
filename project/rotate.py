@@ -300,6 +300,8 @@ def rotate_one(picture, export_rotated=None, show_steps=None):
         path = os.path.join(ROTATED_AUTO_DIR, picture.picture_name)
         cv2.imwrite(path, picture.img_rotated)
 
+    print(f"Rotation done for image: {picture.picture_name} - by {picture.rot90_predicted_num} * 90 deg")
+
 
 def rotate_all(picture_list=None, num_pic=None, log=None, show_steps=False, export_rotated=None):
     """
