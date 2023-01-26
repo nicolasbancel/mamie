@@ -115,24 +115,26 @@ def all_steps(mosaic_name, export_contoured=None, export_cropped=None, export_ro
     # Get all contour information
     mosaic, log_contours = get_contours(mosaic_name, export_contoured=export_contoured, show_image=show_contouring)
     # Crop each contour, warpAffine it, and store the cropped images in a mosaic attribute
+    log_dict = {
+        "config_num": [],
+        "picture_name": [],
+        "rot90_true_num": [],
+        "rot90_predicted_num": [],
+        "success": [],
+        "rot90_summary": [],
+    }
+    log_rot = log_dict.copy()  # to prevent local variable 'log_rot' referenced before assignment errors
     if mosaic.success == True:
         crop_mosaic(mosaic, export_cropped=export_cropped, show_image=show_cropping)
         # For each cropped Picture of the mosaic, get its correct rotation
-        log_dict = {
-            "config_num": [],
-            "picture_name": [],
-            "rot90_true_num": [],
-            "rot90_predicted_num": [],
-            "success": [],
-            "rot90_summary": [],
-        }
+
         for i in range(mosaic.num_contours_final):
             picture_name = mosaic.cropped_pictures["filename"][i]
             cv2_array = mosaic.cropped_pictures["img"][i]
             picture = Picture(picture_name=picture_name, cv2_array=cv2_array)
             rotate_one(picture, export_rotated=export_rotated, show_steps=show_rotation)
-            log_rotations = fill_log(picture, EXECUTION_TIME, log_dict)
-    return mosaic, log_contours, log_rotations
+            log_rot = fill_log(picture, EXECUTION_TIME, log_dict)
+    return mosaic, log_contours, log_rot
 
 
 def main(
