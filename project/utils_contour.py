@@ -69,7 +69,6 @@ def draw_main_contours(
         # if our approximated contour has four points, then we
         # can assume that we have found our screen
         screenCnt = approx
-        # print(f'Number of corners : {len(approx)}')
         if len(approx) == 4:
             num_rectangles += 1
         if only_rectangles:
@@ -98,7 +97,6 @@ def draw_main_contours(
         "photos_areas": contours_areas,
     }
 
-    # print(message)
     # print(f"Out of {num_biggest_contours} biggest contours - {num_rectangles} are rectangles")
 
     if show_image:

@@ -145,7 +145,6 @@ def stack_images(list_labels, list_images, message, num_columns=4):
             "total_num_contours",
             "num_biggest_contours",
             "num_rectangles_before_split",
-            # "predicted_num_pictures_on_mosaic",
             "photos_areas",
             "split_contours",
             "true_num_pictures",
@@ -159,7 +158,7 @@ def stack_images(list_labels, list_images, message, num_columns=4):
         new_message["blur"] = f"blur_method : {message['blur_method']} | blur_parameters : {message['blur_parameters']}"
         new_message["thresh"] = f"threshold_method  : {message['threshold_method']} | min :  {message['threshold_min']} | max :  {message['threshold_max']}"
 
-        print(new_message)
+        print(f"Contouring succeeded : new_message['success']")
         # Labeling
 
         for x in range(num_columns):

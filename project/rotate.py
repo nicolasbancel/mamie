@@ -97,8 +97,6 @@ def dnn_model(picture, k, model=YUNET_PATH, show_steps=None):
     """
 
     detector = cv2.FaceDetectorYN.create(YUNET_PATH, "", (320, 320), SCORE_THRESHOLD, NMS_THRESHOLD, TOP_K)  # this will be changed
-
-    print(f"Inside dnn_model - picture_name : {picture.picture_name}")
     img = picture.resize(0.5)
     # resizing loses a bit of precision - for example with :  "mamie0039_03.jpg"
     height, width, _ = img.shape
@@ -292,8 +290,8 @@ def rotate_one(picture, export_rotated=None, show_steps=None):
     """
     get_faces_per_rotation(picture, dnn_model, show_steps=show_steps)
     get_rotation_model(picture)
-    print(picture.rot90_summary)
-    print(f"{picture.picture_name} - Rotation needed : {picture.rot90_predicted_num} * 90 deg")
+    # print(picture.rot90_summary)
+    # print(f"{picture.picture_name} - Rotation needed : {picture.rot90_predicted_num} * 90 deg")
     picture.img_rotated = picture.rotate_np(picture.rot90_predicted_num)
     if show_steps == True:
         show(f"Rotated img - {picture.picture_name} - {picture.rot90_predicted_num} * 90 deg", picture.img_rotated)

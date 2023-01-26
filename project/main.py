@@ -112,6 +112,7 @@ def all_steps(mosaic_name, export_contoured=None, export_cropped=None, export_ro
             cv2_array = mosaic.cropped_pictures["img"][i]
             picture = Picture(picture_name=picture_name, cv2_array=cv2_array)
             rotate_one(picture, export_rotated=export_rotated, show_steps=show_rotation)
+    return mosaic, message
 
 
 def main(
@@ -131,7 +132,7 @@ def main(
         # python3 final.py -m ["mamie0001.jpg"] to work and treat only 1 mosaic
         # python3 final.py -m ["mamie0008.jpg"]
         for mosaic_name in mosaic_list:
-            all_steps(mosaic_name, export_contoured, export_cropped, export_rotated, show_contouring, show_cropping, show_rotation)
+            mosaic, message = all_steps(mosaic_name, export_contoured, export_cropped, export_rotated, show_contouring, show_cropping, show_rotation)
     else:
         if num_mosaics is None:
             # Processing all mosaics
@@ -140,23 +141,31 @@ def main(
             max_index = num_mosaics if num_mosaics < len(os.listdir(SOURCE_DIR)) else len(os.listdir(SOURCE_DIR)) - 1
             mosaics_to_process = sorted(os.listdir(SOURCE_DIR))[:max_index]
 
-        for mosaic in mosaics_to_process:
+        for mosaic_name in mosaics_to_process:
             now = datetime.now()
             dt = now.strftime("%H:%M:%S")
-            if mosaic.endswith(".jpg") or mosaic.endswith(".png"):
-                print(f"\n Time is : {dt} - Treating : {mosaic} \n")
-                all_steps(mosaic_name, export_contoured, export_cropped, export_rotated, show_contouring, show_cropping, show_rotation)
+            if mosaic_name.endswith(".jpg") or mosaic_name.endswith(".png"):
+                print(f"\n Time is : {dt} - Treating : {mosaic_name} \n")
+                mosaic, message = all_steps(mosaic_name, export_contoured, export_cropped, export_rotated, show_contouring, show_cropping, show_rotation)
                 for key in set(FINAL_MESSAGE) - {"config_num"}:
                     FINAL_MESSAGE[key].append(message[key])
                 FINAL_MESSAGE["config_num"].append(CONFIG_NUM)
             else:
-                print(f"\n Time is : {dt} - Ignore - {filename} is not a picture file \n")
+                print(f"\n Time is : {dt} - Ignore - {mosaic_name} is not a picture file \n")
                 continue
     if log_results == True:
         log_results(FINAL_MESSAGE, "results.csv")
 
 
 if __name__ == "__main__":
+    # python3 main.py -n 5 -log True -exco "fail_only" -excr True -exro True -shco True -shcr True -shro True
+    # all_steps("mamie0028.jpg")
+
+    # Example of execution plan
+    # python3 final.py -n 20 OR
+    # python3 final.py OR
+    # python3 final.py -i "mamie0001.jpg" OR
+    # python3 final.py -log True
     ap = argparse.ArgumentParser()
     ap.add_argument("-m", "--mosaic_list", required=False, help="Name of mosaic - located in source dir")
     ap.add_argument("-n", "--num_mosaics", required=False, type=int, help="Number of mosaics to process")
@@ -168,7 +177,7 @@ if __name__ == "__main__":
     ap.add_argument("-exro", "--export_rotated", required=False, nargs="?", const=False, help="Whether the script should export the rotated pictures")
     ap.add_argument("-shco", "--show_contouring", required=False, nargs="?", const=False, help="Whether the script should show images of steps for contouring")
     ap.add_argument("-shcr", "--show_cropping", required=False, nargs="?", const=False, help="Whether the script should show images of steps for cropping")
-    ap.add_argument("-shco", "--show_rotation", required=False, nargs="?", const=False, help="Whether the script should show images of steps for rotating")
+    ap.add_argument("-shro", "--show_rotation", required=False, nargs="?", const=False, help="Whether the script should show images of steps for rotating")
     args = vars(ap.parse_args())
 
     mosaic_list = args["mosaic_list"]
@@ -181,24 +190,6 @@ if __name__ == "__main__":
     show_cropping = args["show_cropping"]
     show_rotation = args["show_rotation"]
 
-    #print(f"mosaic_list : {mosaic_list} // num_mosaics : {num_mosaics} // log_results : {log_results}")
-    
-    main(
-        mosaic_list,
-        num_mosaics
-        log_results,
-        export_contoured,
-        export_cropped,
-        export_rotated,
-        show_contouring,
-        show_cropping,
-        show_rotation,
-    )
+    # print(f"mosaic_list : {mosaic_list} // num_mosaics : {num_mosaics} // log_results : {log_results}")
 
-    # all_steps("mamie0028.jpg")
-
-    # Example of execution plan
-    # python3 final.py -n 20 OR
-    # python3 final.py OR
-    # python3 final.py -i "mamie0001.jpg" OR
-    # python3 final.py -log True
+    main(mosaic_list, num_mosaics, log_results, export_contoured, export_cropped, export_rotated, show_contouring, show_cropping, show_rotation)
