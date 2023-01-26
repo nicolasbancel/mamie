@@ -132,7 +132,6 @@ def all_steps(mosaic_name, export_contoured=None, export_cropped=None, export_ro
             picture = Picture(picture_name=picture_name, cv2_array=cv2_array)
             rotate_one(picture, export_rotated=export_rotated, show_steps=show_rotation)
             log_rotations = fill_log(picture, EXECUTION_TIME, log_dict)
-            print(log_rotations)
     return mosaic, log_contours, log_rotations
 
 
@@ -162,7 +161,7 @@ def main(
         dt = now.strftime("%H:%M:%S")
         if mosaic_name.endswith(".jpg") or mosaic_name.endswith(".png"):
             print(f"\n Time is : {dt} - Treating : {mosaic_name} \n")
-            mosaic, log_contours, log_rotations = all_steps(
+            mosaic, log_contours, log_rot = all_steps(
                 mosaic_name, export_contoured, export_cropped, export_rotated, show_contouring, show_cropping, show_rotation
             )
             for key in set(FINAL_LOG_CONTOURS) - {"config_num"}:
@@ -170,20 +169,24 @@ def main(
             FINAL_LOG_CONTOURS["config_num"].append(CONFIG_NUM)
             for k in set(FINAL_LOG_ROTATIONS):
                 # Need extend because after each mosaic run, we get a list of rotations x pictures
-                FINAL_LOG_ROTATIONS[k].extend(log_rotations[k])
-            print(f"Final Log rotations : {FINAL_LOG_ROTATIONS}")
+                FINAL_LOG_ROTATIONS[k].extend(log_rot[k])
         else:
             print(f"\n Time is : {dt} - Ignore - {mosaic_name} is not a picture file \n")
             continue
     if log_contouring == True:
-        print(FINAL_LOG_CONTOURS)
         log_results(FINAL_LOG_CONTOURS, "results_contours.csv")
     if log_rotations == True:
-        print(FINAL_LOG_ROTATIONS)
         log_results(FINAL_LOG_ROTATIONS, "results_rotations.csv")
 
 
 if __name__ == "__main__":
+
+    ################################################################
+    # FINAL RUNNING SCRIPT
+    ################################################################
+
+    # python3 main.py -log_c -log_r -exco "fail_only" -excr -exro --no-show_contouring --no-show_cropping --no-show_rotation
+
     # Show everything
     # python3 main.py -n 4 -log_c -exco "fail_only" -excr -exro -shco -shcr -shro
 
