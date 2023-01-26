@@ -6,6 +6,9 @@ import csv
 from math import sqrt
 from PIL import Image, ExifTags
 
+import cv2
+
+
 import pdb
 
 
@@ -292,109 +295,42 @@ def nothing(x):
     pass
 
 
-def find_shape_black_edge_printer():
+THICKNESS_HORIZONTAL = 25
+THICKNESS_VERTICAL = 15
+WHITE_TRIANGLE_HEIGHT = 6
+WHITE_TRIANGLE_LENGTH = 400
+
+
+def white_triangle(mosaic_name="mamie0022.jpg", triangle_length=WHITE_TRIANGLE_LENGTH, triangle_height=WHITE_TRIANGLE_HEIGHT, color=(255, 255, 255)):
     """
     Very specific to my use case
     """
-    img = load_original(file_name="mamie0171.jpg", dir="source")
-    num_rows, num_columns = img.shape[:2]
-    color_vertical = (255, 255, 255)
-    color_horizontal = (255, 255, 255)
-    # color_vertical=(0, 255, 0) # Green
-    # color_horizontal=(0, 0, 255) # Red
+    img = load_original(mosaic_name, dir="source")
+    img_whiten_edges = img.copy()
+    num_row, num_col = img_whiten_edges.shape[:2]
     top_left = (0, 0)
-    bottom_right_vertical = (15, num_rows)
-    bottom_right_horizontal = (num_columns, 25)
-    # Vertical rectangle
-    cv2.rectangle(img, (0, 0), bottom_right_vertical, color_vertical, -1)
-    # Horizontal rectangle
-    cv2.rectangle(img, (0, 0), bottom_right_horizontal, color_horizontal, -1)
-    show("Img with edges", img)
-    grey = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    show("Img with edges in B&W", grey)
-    # We should be left only with a tiny black line on the right
-    copy = img.copy()
-    # img[row, column] - Hence accessing pixel is by img[Y, X] - which is different from circle
-    # circle: (X,Y)
+    bottom_right_vertical = (THICKNESS_VERTICAL, num_row)
+    bottom_right_horizontal = (num_col, THICKNESS_HORIZONTAL)
+    cv2.rectangle(img_whiten_edges, top_left, bottom_right_vertical, color, -1)
+    cv2.rectangle(img_whiten_edges, top_left, bottom_right_horizontal, color, -1)
+    # img = load_original(file_name="mamie0171.jpg", dir="source")
+    # img = load_original(file_name=file_name, dir="source")
 
-    img_without_top_edge = grey[25 + 1 : num_rows, 0:num_columns]
-    show("Img without top edge", img_without_top_edge)
+    img_triangle = img_whiten_edges.copy()
+    num_rows, num_columns = img_triangle.shape[:2]
 
-    for y in range(30):
-        print(f"Column (X) : {num_columns-1} // Row (Y) : {y} // Intensity={img_without_top_edge[y,num_columns-1]}")
-        # cv2.circle(copy, (num_columns-1, i), radius=50, color=(0, 255, 0), thickness=-1)
-    show("Copy", copy)
-
-    # show the array of last 30 pixels horizontally and until index 7 INCLUDED vertically
-
-    array = img_without_top_edge[0:8, num_columns - 50 : num_columns - 1]
-    transp = np.transpose(array)
-
-    X = int(num_columns / 2)
-
-    for i in range(50):
-        print(f"Column (X) : {X} // Row (Y) : {i} // Intensity={grey[i,X]}")
-        cv2.circle(copy, (X, i), radius=30, color=(255, 0, 0), thickness=-1)
-    show("Copy", copy)
-
-    TRIANGLE_HEIGHT = 4
-    num_rows, num_columns = img_without_top_edge.shape[:2]
     # Most left point of the triangle (tip is at -400 on X axis)
-    point_1 = (num_columns - 400, 0)
-    # Top right point
-    point_2 = (num_columns - 1, 0)
-    # Bottom right point
-    point_3 = (num_columns - 1, TRIANGLE_HEIGHT)
-
-    cop = img_without_top_edge.copy()
-
-    cv2.circle(cop, point_1, 50, (0, 0, 255), -1)
-    cv2.circle(cop, point_2, 50, (0, 0, 255), -1)
-    cv2.circle(cop, point_3, 50, (0, 0, 255), -1)
-
-    show("xx", cop)
-
-    THICKNESS_HORIZONTAL = 25
-
-    img = load_original(file_name="mamie0171.jpg", dir="source")
-    num_rows, num_columns = img.shape[:2]
-    color_vertical = (255, 255, 255)
-    color_horizontal = (255, 255, 255)
-    # color_vertical=(0, 255, 0) # Green
-    # color_horizontal=(0, 0, 255) # Red
-    top_left = (0, 0)
-    bottom_right_vertical = (15, num_rows)
-    bottom_right_horizontal = (num_columns, THICKNESS_HORIZONTAL)
-    # Vertical rectangle
-    cv2.rectangle(img, (0, 0), bottom_right_vertical, color_vertical, -1)
-    # Horizontal rectangle
-    cv2.rectangle(img, (0, 0), bottom_right_horizontal, color_horizontal, -1)
-
-    ## Adding borders
-    border_size = min(int(0.05 * img.shape[0]), int(0.05 * img.shape[1]))
-    top = bottom = left = right = border_size
-    borderType = cv2.BORDER_CONSTANT
-    img_borders = cv2.copyMakeBorder(img, top, bottom, left, right, borderType, None, (255, 255, 255))
-
-    # CREATING TRIANGLE
-    # Start at 26 is good (THICKNESS_HORIZONTAL + 1)
-    # But the height should be a bit higher (5)
-    TRIANGLE_HEIGHT = 6
-    # color = (200, 200, 200)
-    color = (255, 255, 255)
-    STARTING_X = 400
-    img_triangle = img.copy()
-    # Most left point of the triangle (tip is at -400 on X axis)
-    point_1 = (num_columns - STARTING_X, THICKNESS_HORIZONTAL + 1)
+    point_1 = (num_columns - WHITE_TRIANGLE_LENGTH, THICKNESS_HORIZONTAL + 1)
     # Top right point
     point_2 = (num_columns - 1, THICKNESS_HORIZONTAL + 1)
     # Bottom right point
-    point_3 = (num_columns - 1, THICKNESS_HORIZONTAL + 1 + TRIANGLE_HEIGHT)
+    point_3 = (num_columns - 1, THICKNESS_HORIZONTAL + 1 + WHITE_TRIANGLE_HEIGHT)
 
     triangle_cnt = np.array([point_1, point_2, point_3])
 
     cv2.drawContours(img_triangle, [triangle_cnt], 0, color, -1)
-    cv2.imwrite("img_triangle_L400_H6_start26.jpg", img_triangle)
+    cv2.imwrite(f"{mosaic_name}_img_whiten_edges.jpg", img_whiten_edges)
+    cv2.imwrite(f"{mosaic_name}_img_triangle.jpg", img_triangle)
 
 
 def initializeTrackbars(intialTracbarVals=0, threshold=True):

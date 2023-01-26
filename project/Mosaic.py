@@ -3,7 +3,7 @@ from utils import *
 
 MOSAIC_METADATA = load_metadata(filename="pictures_per_mosaic.csv")
 THICKNESS_HORIZONTAL = 25
-WHITE_TRIANGLE_HEIGHT = 6
+WHITE_TRIANGLE_HEIGHT = 10
 WHITE_TRIANGLE_LENGTH = 400
 
 

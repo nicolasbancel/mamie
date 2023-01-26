@@ -197,6 +197,7 @@ if __name__ == "__main__":
 
     # Test with long list
     # python3 main.py -m "mamie0003.jpg" "mamie0000.jpg" "mamie0001.jpg" -log_c -exco "fail_only" -excr -exro --no-show_contouring --no-show_cropping --no-show_rotation
+    # python3 main.py -m "mamie0022.jpg" --no-log_contouring --log_contouring -exco "fail_only" -excr -exro --no-show_contouring --no-show_cropping --no-show_rotation
 
     ap = argparse.ArgumentParser()
     ap.add_argument("-m", "--mosaic_list", nargs="+", required=False, help="Name of mosaic - located in source dir")

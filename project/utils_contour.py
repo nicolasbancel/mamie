@@ -119,7 +119,7 @@ def fix_contours(mosaic):
             contour.find_extrapolation()
             split_contours, intersection_point = contour.split_contour(mosaic.img_source, cv)
             new_contours = split_contours
-            show("cv", cv)
+            # show("cv", cv)
         else:
             # print(f"Contour has good shape - no need for split - color index = {color_index}")
             # new_contours has to be a list - in this case, it's a list of 1 single element
