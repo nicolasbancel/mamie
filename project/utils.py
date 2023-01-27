@@ -77,22 +77,22 @@ def draw(img, contour, color_index=0, show_points=True, show_index=False, legend
         point_y = point[1]
         if point_x < mid_left_right and point_y < mid_top_down:
             # Top left section
-            start_position = (point_x + OFFSET_HORIZONTAL, point_y + OFFSET_VERTICAL)
+            start_position = (point_x + OFFSET_HORIZONTAL, point_y + OFFSET_VERTICAL + 100)
         elif point_x < mid_left_right and point_y > mid_top_down:
             # Bottom left section
             start_position = (point_x + OFFSET_HORIZONTAL, point_y - OFFSET_VERTICAL)
         elif point_x > mid_left_right and point_y < mid_top_down:
             # Top right section
-            start_position = (point_x - OFFSET_HORIZONTAL - 100, point_y + OFFSET_VERTICAL)
+            start_position = (point_x - OFFSET_HORIZONTAL - 1000, point_y + OFFSET_VERTICAL + 100)
         elif point_x > mid_left_right and point_y > mid_top_down:
             # Bottom right section
-            start_position = (point_x - OFFSET_HORIZONTAL - 100, point_y - OFFSET_VERTICAL)
+            start_position = (point_x - OFFSET_HORIZONTAL - 1000, point_y - OFFSET_VERTICAL)
         return start_position
 
     if legend is None:
         legend = []
     # img_copy = img.copy()
-    pdb.set_trace()
+    # pdb.set_trace()
     cv2.drawContours(img, [contour], -1, COLOR_LIST[color_index], CONTOUR_SIZE)
     if show_points:
         for idx, point in enumerate(contour):
@@ -101,7 +101,7 @@ def draw(img, contour, color_index=0, show_points=True, show_index=False, legend
             # point can be [[345, 277]], or [345, 277]. tuple(xxx) would not work in the 1st config
             cv2.circle(img, center=tuple(f_point), radius=20, color=POINT_COLOR, thickness=cv2.FILLED)
             if show_index:
-                cv2.putText(img, f"{idx} - {tuple(f_point)}", start_text_location(point), cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 0, 255), 12, cv2.LINE_AA)
+                cv2.putText(img, f"{idx} - {tuple(f_point)}", start_text_location(f_point), cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 0, 255), 12, cv2.LINE_AA)
             if len(legend) > 0:
                 cv2.putText(img, f"Legend: {legend[idx]}", (5 + f_point[0], 150 + f_point[1]), cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 0, 255), 12, cv2.LINE_AA)
 

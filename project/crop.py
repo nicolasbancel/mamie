@@ -77,7 +77,7 @@ def warpAffine_contour(mosaic, contour, show_image=None):
 
     if show_image:
         copy = mosaic.img_source.copy()
-        pdb.set_trace()
+        # pdb.set_trace()
         draw(copy, feature_points_int, color_index=0, show_points=True, show_index=True)
         draw(copy, warped_feature_points_int, color_index=0, show_points=True, show_index=True)
         show(f"{mosaic.mosaic_name} - WarpAffine - Source & Target shapes", copy)
