@@ -45,7 +45,7 @@ def warpAffine_contour(mosaic, contour, show_image=None):
     feature_points = np.array(cv2.boxPoints(rectangle), dtype=np.float32)
     # Rearrange feature_points to be in the order of target points
 
-    offset = 0  # or 100
+    offset = 0  # Target should be 0 otherwise it
     target_topleft = [offset, offset]
     target_topright = [offset + width_int, offset]
     target_bottomright = [offset + width_int, offset + height_int]
@@ -77,6 +77,7 @@ def warpAffine_contour(mosaic, contour, show_image=None):
 
     if show_image:
         copy = mosaic.img_source.copy()
+        pdb.set_trace()
         draw(copy, feature_points_int, color_index=0, show_points=True, show_index=True)
         draw(copy, warped_feature_points_int, color_index=0, show_points=True, show_index=True)
         show(f"{mosaic.mosaic_name} - WarpAffine - Source & Target shapes", copy)

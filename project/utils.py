@@ -43,7 +43,9 @@ def load_metadata(filename):
     with open(filename, mode="r") as file:
         reader = csv.reader(file)
         next(reader, None)
-        mapping = {rows[0]: int(rows[1]) for rows in reader}
+        # if len(rows) > 1 : prevents bug when additional carriage return
+        # at the end of the metadata file
+        mapping = {rows[0]: int(rows[1]) for rows in reader if len(rows) > 1}
     return mapping
 
 
@@ -58,18 +60,50 @@ def draw(img, contour, color_index=0, show_points=True, show_index=False, legend
     """
     This function DOES impact img - it simply display on top of a duplicate
     Font scale of 4 is good (8 is way too big)
+
+    Contour HAS TO BE A SINGLE CONTOUR.
+    Because we're then iterating through the points of that contour
     """
+
+    OFFSET_HORIZONTAL = 20
+    OFFSET_VERTICAL = 20
+
+    num_row, num_col = img.shape[:2]
+    mid_left_right = int(num_col / 2)  # determines
+    mid_top_down = int(num_row / 2)
+
+    def start_text_location(point: tuple):
+        point_x = point[0]
+        point_y = point[1]
+        if point_x < mid_left_right and point_y < mid_top_down:
+            # Top left section
+            start_position = (point_x + OFFSET_HORIZONTAL, point_y + OFFSET_VERTICAL)
+        elif point_x < mid_left_right and point_y > mid_top_down:
+            # Bottom left section
+            start_position = (point_x + OFFSET_HORIZONTAL, point_y - OFFSET_VERTICAL)
+        elif point_x > mid_left_right and point_y < mid_top_down:
+            # Top right section
+            start_position = (point_x - OFFSET_HORIZONTAL - 100, point_y + OFFSET_VERTICAL)
+        elif point_x > mid_left_right and point_y > mid_top_down:
+            # Bottom right section
+            start_position = (point_x - OFFSET_HORIZONTAL - 100, point_y - OFFSET_VERTICAL)
+        return start_position
+
     if legend is None:
         legend = []
     # img_copy = img.copy()
-    cv2.drawContours(img, [contour], -1, COLOR_LIST[color_index], 40)
+    pdb.set_trace()
+    cv2.drawContours(img, [contour], -1, COLOR_LIST[color_index], CONTOUR_SIZE)
     if show_points:
         for idx, point in enumerate(contour):
-            cv2.circle(img, center=tuple(point), radius=20, color=POINT_COLOR, thickness=cv2.FILLED)
+            f_point = point.flatten()
+            # Enables to handle different versions of point
+            # point can be [[345, 277]], or [345, 277]. tuple(xxx) would not work in the 1st config
+            cv2.circle(img, center=tuple(f_point), radius=20, color=POINT_COLOR, thickness=cv2.FILLED)
             if show_index:
-                cv2.putText(img, f"{idx} - {tuple(point)}", (5 + point[0], 5 + point[1]), cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 0, 255), 12, cv2.LINE_AA)
+                cv2.putText(img, f"{idx} - {tuple(f_point)}", start_text_location(point), cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 0, 255), 12, cv2.LINE_AA)
             if len(legend) > 0:
-                cv2.putText(img, f"Legend: {legend[idx]}", (5 + point[0], 150 + point[1]), cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 0, 255), 12, cv2.LINE_AA)
+                cv2.putText(img, f"Legend: {legend[idx]}", (5 + f_point[0], 150 + f_point[1]), cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 0, 255), 12, cv2.LINE_AA)
 
 
 def stack_images(list_labels, list_images, message, num_columns=4):
@@ -297,7 +331,7 @@ def nothing(x):
 
 THICKNESS_HORIZONTAL = 25
 THICKNESS_VERTICAL = 15
-WHITE_TRIANGLE_HEIGHT = 6
+WHITE_TRIANGLE_HEIGHT = 10
 WHITE_TRIANGLE_LENGTH = 400
 
 
@@ -329,8 +363,10 @@ def white_triangle(mosaic_name="mamie0022.jpg", triangle_length=WHITE_TRIANGLE_L
     triangle_cnt = np.array([point_1, point_2, point_3])
 
     cv2.drawContours(img_triangle, [triangle_cnt], 0, color, -1)
-    cv2.imwrite(f"{mosaic_name}_img_whiten_edges.jpg", img_whiten_edges)
-    cv2.imwrite(f"{mosaic_name}_img_triangle.jpg", img_triangle)
+
+    filename = mosaic_name.split(".")[0]
+    cv2.imwrite(f"{filename}_img_whiten_edges.jpg", img_whiten_edges)
+    cv2.imwrite(f"{filename}_img_triangle.jpg", img_triangle)
 
 
 def initializeTrackbars(intialTracbarVals=0, threshold=True):

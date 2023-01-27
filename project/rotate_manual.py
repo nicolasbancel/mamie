@@ -16,6 +16,7 @@ def rotate_manual(picture, save_pic=None):
     """
     for k in range(4):
         rotated_img = picture.rotate_np(k)
+        picture_rotation = "Not provided"
         cv2.imshow(f"{picture.picture_name} - Rotation : {k} degrees", rotated_img)
         r = cv2.waitKey()
         if r == 27 or r == 32:  # Stopping with escape of space bar
@@ -52,6 +53,22 @@ def rotate_manual(picture, save_pic=None):
 
 
 def rotate_manual_multiple(num_pictures: int = None, start_index=0, save_pic=None):
+    """
+    # Already done until 49. Will do 20 more
+    # To know where to start : go to rotation_metadata.csv : row_number = 5 :
+    #  - means you've rotated 4 pictures (because of headers in the cvs)
+    #  - So you've already processed the list of pictures until index = 3
+    #  - Hence you can have a start_index = 4, so that you don't process again the 4th picture (at index 3)
+    #  - start_index = n-1 where n = # of rows in the rotation_metadata.csv
+
+    # Example : 96 rows. Last picture processed was mamie0038_01.jpg
+    # Should start index at 95
+    # rotate_manual_multiple(num_pictures=30, start_index=95, save_pic=None)
+    # Will start at mamie0038_02.jpg
+
+    # mamie0056_02.jpg at row = 125 in rotation_metadata.csv
+    # Should start at index = 124
+    """
     all_pictures = [file for file in sorted(os.listdir(CROPPED_DIR)) if (file.endswith(".jpg") or file.endswith(".png"))]
     if num_pictures is not None:
         final_index = len(all_pictures) - 1 if start_index + num_pictures > len(all_pictures) else start_index + num_pictures - 1
@@ -64,8 +81,5 @@ def rotate_manual_multiple(num_pictures: int = None, start_index=0, save_pic=Non
 
 
 if __name__ == "__main__":
-    # Already done until 49. Will do 20 more
-    # To know where to start : go to rotation_metadata.csv : row_number = 68 :
-    #  - means you've rotated 67 pictures (because of headers in the cvs)
-    #  - means you should start at index = 66
-    rotate_manual_multiple(num_pictures=10, start_index=66, save_pic=None)
+
+    rotate_manual_multiple(num_pictures=50, start_index=124, save_pic=None)

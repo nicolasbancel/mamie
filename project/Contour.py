@@ -330,7 +330,7 @@ class Contour:
         original_copy = img_source.copy()
 
         for index, p in enumerate(split_contours):
-            cv2.drawContours(original_copy, [p], -1, COLOR_LIST[index], 40)
+            cv2.drawContours(original_copy, [p], -1, COLOR_LIST[index], CONTOUR_SIZE)
             for point in p:
                 cv2.circle(original_copy, center=tuple(point), radius=20, color=(1, 0, 0), thickness=cv2.FILLED)
 

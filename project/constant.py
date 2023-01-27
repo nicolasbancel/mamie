@@ -66,6 +66,11 @@ morph_operator = morph_op_dic[0]
 morph_elem = morph_op_dic[0]
 
 
+CONTOUR_SIZE = 20
+CONTOUR_COLOR_DEFAULT = (0, 255, 0)
+CONTOUR_PRECISION_PARAM = 0.01
+
+
 # List of colors : BGR
 # List of good colors to print contours with
 # Green, Red, Blue, Yellow, Cyan, Magenta

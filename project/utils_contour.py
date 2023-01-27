@@ -6,11 +6,6 @@ from utils import *
 import pdb
 
 
-CONTOUR_SIZE = 40
-CONTOUR_COLOR_DEFAULT = (0, 255, 0)
-CONTOUR_PRECISION_PARAM = 0.01
-
-
 def find_contours(mosaic, retrieval_mode=cv2.RETR_EXTERNAL):
     # cv2.RETR_EXTERNAL : external contours only
     contours, hierarchy = cv2.findContours(mosaic.img_thresh.copy(), retrieval_mode, cv2.CHAIN_APPROX_NONE)
@@ -83,7 +78,10 @@ def draw_main_contours(
 
     contours_areas = [cv2.contourArea(x) for x in contours_main]
 
-    cv2.drawContours(img_w_main_contours, contours_main, -1, contours_color, contour_size)
+    # pdb.set_trace()
+    for contour in contours_main:
+        draw(img_w_main_contours, contour, color_index=0, show_points=True, show_index=True)
+    # cv2.drawContours(img_w_main_contours, contours_main, -1, contours_color, contour_size)
 
     mosaic.contours_main = contours_main
     mosaic.img_w_main_contours = img_w_main_contours
@@ -105,7 +103,7 @@ def draw_main_contours(
     return message
 
 
-def fix_contours(mosaic):
+def fix_contours(mosaic, show_image=None):
     final_image = mosaic.img_source.copy()
     contours_final = []
     color_index = 0
@@ -134,8 +132,8 @@ def fix_contours(mosaic):
     mosaic.contours_final = contours_final
     mosaic.num_contours_final = len(contours_final)
     mosaic.img_w_final_contours = final_image
-    # UNCOMMENT FOR TESTING
-    # show(f"{mosaic.mosaic_name} - Final contours", final_image)
+    if show_image == True:
+        show(f"{mosaic.mosaic_name} - Final contours", final_image)
 
     return contours_final, final_image
 

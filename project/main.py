@@ -58,7 +58,7 @@ def get_contours(mosaic_name, export_contoured: Literal["all", "fail_only", "non
     find_contours(mosaic, retrieval_mode=cv2.RETR_EXTERNAL)  # updates mosaic.contours_all
     message = draw_main_contours(mosaic, only_rectangles=False, show_image=show_image)  # Updates 4 attributes :
     # mosaic.contours_main / img_w_main_contours / num_contours_total / num_contours_main
-    fix_contours(mosaic)  # Updates 2 attributes : mosaic.contours_final & mosaic.img_w_final_contours
+    fix_contours(mosaic, show_image=show_image)  # Updates 2 attributes : mosaic.contours_final & mosaic.img_w_final_contours
     mosaic.num_points_per_contour = [len(cont) for cont in mosaic.contours_final]
     # inc represents the number of contours that have more than 6 points
     # which makes them wrong
@@ -197,7 +197,7 @@ if __name__ == "__main__":
 
     # Test with long list
     # python3 main.py -m "mamie0003.jpg" "mamie0000.jpg" "mamie0001.jpg" -log_c -exco "fail_only" -excr -exro --no-show_contouring --no-show_cropping --no-show_rotation
-    # python3 main.py -m "mamie0022.jpg" --no-log_contouring --log_contouring -exco "fail_only" -excr -exro --no-show_contouring --no-show_cropping --no-show_rotation
+    # python3 main.py -m "mamie0022.jpg" --no-log_contouring --no-log_rotations -exco "all" -excr -exro --show_contouring --show_cropping --no-show_rotation
 
     ap = argparse.ArgumentParser()
     ap.add_argument("-m", "--mosaic_list", nargs="+", required=False, help="Name of mosaic - located in source dir")
