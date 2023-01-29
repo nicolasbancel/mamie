@@ -2,6 +2,13 @@ import cv2 as cv2
 import os
 from pathlib import Path
 
+
+THICKNESS_HORIZONTAL = 25
+THICKNESS_VERTICAL = 15
+WHITE_TRIANGLE_HEIGHT = 10
+WHITE_TRIANGLE_LENGTH = 400
+
+
 # THRESH_MIN = 252  # TESTING VS 250 TO HAVE ONLY THE PHOTOCOPIEUSE WHITE CONSIDERED WHITE
 # THRESH_MIN = 250 # Should be avoided
 # THRESH_MIN = 252  # Identifies the biggest contour of the 2 pictures in 1 massive rectangle
@@ -84,6 +91,7 @@ CONTOURED_DIR = "/Users/nicolasbancel/git/perso/mamie/data/mosaic/contoured/"
 CROPPED_DIR = "/Users/nicolasbancel/git/perso/mamie/data/mosaic/cropped/"
 ROTATED_AUTO_DIR = "/Users/nicolasbancel/git/perso/mamie/data/mosaic/rotated_automatic/"
 ROTATED_MANUAL_DIR = "/Users/nicolasbancel/git/perso/mamie/data/mosaic/rotated_manual/"
+TO_TREAT_DIR = "/Users/nicolasbancel/git/perso/mamie/data/mosaic/to_treat_manually/"
 
 OPENCV_DATA_DIR = "/Users/nicolasbancel/git/perso/mamie/data/opencv/"
 

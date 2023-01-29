@@ -75,16 +75,16 @@ def draw(img, contour, color_index=0, show_points=True, show_index=False, legend
     def start_text_location(point: tuple):
         point_x = point[0]
         point_y = point[1]
-        if point_x < mid_left_right and point_y < mid_top_down:
+        if point_x <= mid_left_right and point_y < mid_top_down:
             # Top left section
             start_position = (point_x + OFFSET_HORIZONTAL, point_y + OFFSET_VERTICAL + 100)
-        elif point_x < mid_left_right and point_y > mid_top_down:
+        elif point_x <= mid_left_right and point_y >= mid_top_down:
             # Bottom left section
             start_position = (point_x + OFFSET_HORIZONTAL, point_y - OFFSET_VERTICAL)
         elif point_x > mid_left_right and point_y < mid_top_down:
             # Top right section
             start_position = (point_x - OFFSET_HORIZONTAL - 1000, point_y + OFFSET_VERTICAL + 100)
-        elif point_x > mid_left_right and point_y > mid_top_down:
+        elif point_x > mid_left_right and point_y >= mid_top_down:
             # Bottom right section
             start_position = (point_x - OFFSET_HORIZONTAL - 1000, point_y - OFFSET_VERTICAL)
         return start_position
@@ -327,12 +327,6 @@ def rotate_exif(filepath):
 
 def nothing(x):
     pass
-
-
-THICKNESS_HORIZONTAL = 25
-THICKNESS_VERTICAL = 15
-WHITE_TRIANGLE_HEIGHT = 10
-WHITE_TRIANGLE_LENGTH = 400
 
 
 def white_triangle(mosaic_name="mamie0022.jpg", triangle_length=WHITE_TRIANGLE_LENGTH, triangle_height=WHITE_TRIANGLE_HEIGHT, color=(255, 255, 255)):

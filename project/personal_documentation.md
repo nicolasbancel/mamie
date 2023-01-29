@@ -57,10 +57,13 @@ rotate_all(picture_list=tough_ones, log=True, show_steps=True):
   - `mamie0101.jpg`
 - Example of black residual triangle that is detected in the contour (with impact on final shape):
   - `mamie0098.jpg` - and more precisely `mamie0098_01` (landeau is cropped)
-  - `mamie0140.jpg` - and more precisely enventually on Cyril's picture : `mamie0140_02.jpg`
-  - `mamie0138.jpg` - and more precisely Maman au jardin : `mamie018_01.jpg`
-  - `mamie0276.jpg` - and more precisely Papy ski nautique : `mamie0276_02.jpg`
-  - `mamie0261.jpg` - and more precisely Papa retour Boston : `mamie0261_03.jpg`
+  - `mamie0140.jpg` - and more precisely enventually on Cyril's picture : `mamie0140_02.jpg` ✅
+  - `mamie0138.jpg` - and more precisely Maman au jardin : `mamie0138_01.jpg` ✅
+  - `mamie0276.jpg` - and more precisely Papy ski nautique : `mamie0276_02.jpg`✅
+  - `mamie0261.jpg` - and more precisely Papa retour Boston : `mamie0261_03.jpg` ✅
+
+
+["mamie0140.jpg", "mamie0138.jpg", "mamie0276.jpg","mamie0261.jpg"]
 
 
 See the black edge entirely : 
@@ -68,8 +71,14 @@ See the black edge entirely :
 from Mosaic import *
 
 mosaic = Mosaic(mosaic_name = "mamie0171.jpg")
+
+
+mosaic = Mosaic(mosaic_name = "mamie0022.jpg")
 show("Img Original", mosaic.img)
 grey = cv2.cvtColor(mosaic.img, cv2.COLOR_BGR2GRAY)
 show("Img Grey", grey)
 ```
+
+
+["mamie0003.jpg","mamie0000.jpg","mamie0001.jpg","mamie0004.jpg","mamie0007.jpg","mamie0011.jpg","mamie0013.jpg","mamie0014.jpg","mamie0036.jpg"]
 

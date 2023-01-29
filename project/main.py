@@ -11,6 +11,7 @@ from rotate import *
 import argparse
 import pdb
 from datetime import datetime
+import shutil
 
 #############################################
 # Image
@@ -104,6 +105,9 @@ def get_contours(mosaic_name, export_contoured: Literal["all", "fail_only", "non
             success_path = CONTOURED_DIR + "success/" + mosaic_name
             cv2.imwrite(success_path, final)
     else:
+        # Pushing the failing file to the "TO TREAT" folder so that the cropping + rotation
+        # is done manually there
+        shutil.copy2(os.path.join(SOURCE_DIR, mosaic_name), TO_TREAT_DIR)
         if export_contoured == "all" or "fail_only":
             failure_path = CONTOURED_DIR + "failure/" + mosaic_name
             cv2.imwrite(failure_path, final)
@@ -158,6 +162,12 @@ def main(
     else:
         mosaics_to_process = sorted(os.listdir(SOURCE_DIR))
 
+    # Exception to be dealt with later (the scission point belongs to the polygon)
+    to_remove = ["mamie0280.jpg", "mamie0124.jpg"]
+    for elem in to_remove:
+        if elem in mosaics_to_process:
+            mosaics_to_process.remove(elem)
+
     for mosaic_name in mosaics_to_process:
         now = datetime.now()
         dt = now.strftime("%H:%M:%S")
@@ -188,6 +198,10 @@ if __name__ == "__main__":
     ################################################################
 
     # python3 main.py -log_c -log_r -exco "fail_only" -excr -exro --no-show_contouring --no-show_cropping --no-show_rotation
+
+    ################################################################
+    # OTHER TYPES OF SCRIPTS
+    ################################################################
 
     # Show everything
     # python3 main.py -n 4 -log_c -exco "fail_only" -excr -exro -shco -shcr -shro

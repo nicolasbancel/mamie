@@ -269,7 +269,7 @@ class Contour:
 
         return self.extrapolated_point
 
-    def split_contour(self, img_source, canvas=None):
+    def split_contour(self, img_source, canvas=None, show_image=None):
         """
         - Determine whether or not the line intersects the polygon
             - Documentation : https://stackoverflow.com/questions/6050392/determine-if-a-line-segment-intersects-a-polygon
@@ -280,7 +280,7 @@ class Contour:
         polygon = Polygon(self.points)
 
         # FIND THE INTERSECTION
-
+        # pdb.set_trace()
         intersections = new_line.intersection(polygon)
 
         # print(f"Type of the intersection : {type(intersections)}")
@@ -330,10 +330,8 @@ class Contour:
         original_copy = img_source.copy()
 
         for index, p in enumerate(split_contours):
-            cv2.drawContours(original_copy, [p], -1, COLOR_LIST[index], CONTOUR_SIZE)
-            for point in p:
-                cv2.circle(original_copy, center=tuple(point), radius=20, color=(1, 0, 0), thickness=cv2.FILLED)
-
+            draw(original_copy, p, color_index=index, show_points=False)
+        # show("Split contour", original_copy)
         return split_contours, intersection_point
 
 
