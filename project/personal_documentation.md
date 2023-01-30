@@ -84,11 +84,23 @@ show("Img Grey", grey)
 
 # Residual black edge
 
+- Run without removing the bad point, and exporting all contours : `mamie0008.jpg` should have an issue 
+
+- Small residual black edge, not a bad point, but creates a weird angle / margin in the contour
+  - `mamie0024.jpg`
+  - `mamie0030.jpg` 
+
+
 - It makes a couple of mosaics fail
-  - `mamie0193.jpg`
-  - `mamie0188.jpg`
-  - `mamie0186.jpg`
-  - `mamie0185.jpg`
   - `mamie0184.jpg`
+  - `mamie0185.jpg`
+  - `mamie0186.jpg`
+  - `mamie0188.jpg`
+  - `mamie0193.jpg`
   - `mamie0210.jpg` (to be precise : `mamie0210_04.jpg`)
   - `mamie0211.jpg`
+  - Run `mamie0210.jpg` with correct config : `python3 main.py -m "mamie0210.jpg" --no-log_contouring --no-log_rotations -exco "all" -excr -exro --show_contouring --show_cropping --no-show_rotation`
+- Run first 20 mosaics : `python3 main.py -n 20 --no-log_contouring --no-log_rotations -exco "all" -excr -exro --no-show_contouring --no-show_cropping --no-show_rotation`
+  - After bad point removal : 
+    - `python3 main.py -m "mamie0184.jpg" "mamie0185.jpg" "mamie0186.jpg" "mamie0193.jpg" "mamie0210.jpg" "mamie0211.jpg" --no-log_contouring --no-log_rotations -exco "all" -excr -exro --show_contouring --show_cropping --no-show_rotation`
+  - Fixed after bad point removal = True ✅
