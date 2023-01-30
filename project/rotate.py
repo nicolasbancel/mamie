@@ -146,8 +146,6 @@ def dnn_model(picture, k, model=YUNET_PATH, show_steps=None):
 
         # Area above middle
         area_above_middle, rectangle_above_middle = area_above_middle_line(face, mid_height)
-        print(area_above_middle)
-        print(rectangle_above_middle)
         cv2.rectangle(img_copy, rectangle_above_middle, color=(255, 255, 255), thickness=-1)
 
         summary.append([area, float(confidence), landmarks_density, area_above_middle])
@@ -287,8 +285,6 @@ def get_rotation_model(picture):
     for index, rotation in enumerate(summaries):
         num_ones, highest_score, avg_density, avg_area_above_middle = rotation_summary(rotation)
         result.append([num_ones, highest_score, avg_area_above_middle, avg_density, weight_cum_area(rotation), index])
-
-    print(result)
     # Sort by :
     # - rotation that has the highest number of faces perfectly identified
     # - if there's tie in the # of perfectly identified faces, what's the next highest accuracy ?
@@ -375,14 +371,21 @@ def rotate_all(picture_list=None, num_pic=None, log=None, show_steps=False, expo
         pictures_to_process = sorted(os.listdir(CROPPED_DIR))
     print(pictures_to_process)
     config_num = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    log_rot = LOG_DICT.copy()
+    log_dict = {
+        "config_num": [],
+        "picture_name": [],
+        "rot90_true_num": [],
+        "rot90_predicted_num": [],
+        "success": [],
+        "rot90_summary": [],
+    }
     for picture_name in pictures_to_process:
         if picture_name.endswith(".jpg") or picture_name.endswith(".png"):
             picture = Picture(picture_name)
             rotate_one(picture, export_rotated=export_rotated, show_steps=show_steps)
-            log_rot = fill_log(picture, config_num, LOG_DICT)
+            log_rot = fill_log(picture, config_num, log_dict)
     if log == True:
-        log_results(LOG_DICT, "results_rotations.csv")
+        log_results(log_rot, "results_rotations.csv")
 
 
 if __name__ == "__main__":

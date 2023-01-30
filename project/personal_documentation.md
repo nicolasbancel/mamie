@@ -104,3 +104,7 @@ show("Img Grey", grey)
   - After bad point removal : 
     - `python3 main.py -m "mamie0184.jpg" "mamie0185.jpg" "mamie0186.jpg" "mamie0193.jpg" "mamie0210.jpg" "mamie0211.jpg" --no-log_contouring --no-log_rotations -exco "all" -excr -exro --show_contouring --show_cropping --no-show_rotation`
   - Fixed after bad point removal = True ✅
+
+# Incorrect rotation
+
+- `mamie0029_02.jpg`
