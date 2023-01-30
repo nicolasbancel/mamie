@@ -1,10 +1,8 @@
 from utils import *
+from constant import *
 
 
 MOSAIC_METADATA = load_metadata(filename="pictures_per_mosaic.csv")
-THICKNESS_HORIZONTAL = 25
-WHITE_TRIANGLE_HEIGHT = 10
-WHITE_TRIANGLE_LENGTH = 400
 
 
 class Mosaic:
@@ -38,7 +36,7 @@ class Mosaic:
 
     def whiten_edges(
         self,
-        thickness_vertical=15,
+        thickness_vertical=THICKNESS_VERTICAL,
         thickness_horizontal=THICKNESS_HORIZONTAL,
         color=(255, 255, 255),  # color=(0, 255, 0) for GREEN
         show_image=False,

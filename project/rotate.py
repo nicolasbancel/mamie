@@ -100,25 +100,56 @@ def dnn_model(picture, k, model=YUNET_PATH, show_steps=None):
     img = picture.resize(0.5)
     # resizing loses a bit of precision - for example with :  "mamie0039_03.jpg"
     height, width, _ = img.shape
+    mid_height = int(height / 2)
     img_copy = img.copy()
     detector.setInputSize((width, height))
     _, faces = detector.detect(img)
+
+    # x1, y1, w, h, x_re, y_re, x_le, y_le, x_nt, y_nt, x_rcm, y_rcm, x_lcm, y_lcm
+    # x1, y1, w, h are the top-left coordinates, width and height of the face bounding box
+    # {x, y}_{re, le, nt, rcm, lcm} stands for the coordinates of right eye, left eye, nose tip, the right corner and left corner of the mouth respectively.
+
+    def area_above_middle_line(face, middle_y):
+        # top_y is the highest point of the bounding rectangle of the face
+        top_x = face[0]
+        top_y = face[1]
+        #
+        face_width = face[2]
+        face_height = face[3]
+        if top_y > middle_y:
+            area_above_middle = 0
+            area_below_middle = face_width * face_height
+        else:
+            height_above_middle = min(top_y + face_height, middle_y) - top_y
+            area_above_middle = height_above_middle * face_width
+            area_below_middle = face_width * (face_height - height_above_middle)
+        return area_above_middle, (int(top_x), int(top_y), int(face_width), int(height_above_middle))
 
     faces = faces if faces is not None else []
 
     summary = []
 
+    # Draw middle line, to determine the area above the middle line
+    cv2.line(img_copy, (0, mid_height), (width, mid_height), color=(0, 255, 0), thickness=3)
+
     for face in faces:
 
         area = face[2] * face[3]
         confidence = "{:.2f}".format(face[-1])
-
         box = face[:4].astype(int)
+
+        # Calculating density of landmarks
         tips = face[4 : len(face) - 1].astype(int)
         tips = np.array_split(tips, len(tips) / 2)
-
         landmarks_density = get_point_density(tips)
-        summary.append([area, float(confidence), landmarks_density])
+
+        # Area above middle
+        area_above_middle, rectangle_above_middle = area_above_middle_line(face, mid_height)
+        print(area_above_middle)
+        print(rectangle_above_middle)
+        cv2.rectangle(img_copy, rectangle_above_middle, color=(255, 255, 255), thickness=-1)
+
+        summary.append([area, float(confidence), landmarks_density, area_above_middle])
         cv2.rectangle(img_copy, box, COLOR, RECT_THICKNESS, cv2.LINE_AA)
         for tip in tips:
             cv2.circle(img_copy, tip, TIP_RADIUS, COLOR, TIP_THICKNESS, cv2.LINE_AA)
@@ -140,10 +171,11 @@ def get_faces_per_rotation(picture, func, **kwargs):
         show_steps: show the images / steps or not
 
     Returns:
-        dictionnary: for each rotation, provides a list which includes the 3 elements:
+        dictionnary: for each rotation, provides a list which includes the 4 elements, for each face identified:
         - area
         - confidence
         - density of each face identified
+        - area above middle
     """
     faces_per_rotation = {"k": [], "rotation": [], "summary": []}
     for k in range(4):
@@ -174,7 +206,7 @@ def get_rotation_model(picture):
     Args:
         picture: picture.faces_per_rotation especially
                  List of faces detected for each rotation.
-                 For each list, it has the area, the confidence, the density
+                 For each list (face), it has the area, the confidence, the density, the area above middle
 
 
     Returns :
@@ -206,46 +238,61 @@ def get_rotation_model(picture):
         Each element of l is a 2 element list which corresponds to 1 face
         l[0] : area of the rectanle
         l[1] : accuracy of the prediction
+        l[2] : density of points
+        l[3] : area above middle
         Typical input : face_area[0]
 
         Output:
         num_ones: number of perfectly identified faces on the rotation
         highest_score: except accuracy = 1, what's the 2nd highest accuracy score. If none (because no face was found, or because only accuracy = 1), defaults to 0
+        avg_density : avg density of points observed on faces
         """
         num_ones = 0
         highest_score = 0
         weigthed_densities = []
+        weigthed_areas_above_middle = []
         for face in l:
-            weighted_density = face[2] * face[1]
+            accuracy = face[1]
+            point_density = face[2]
+            weighted_density = point_density * accuracy
             weigthed_densities.append(weighted_density)
-            if face[1] >= 0.99:
+
+            # weigthed_area_above_middle
+            area_above_middle = face[3]
+            weighted_area_above_middle = area_above_middle * accuracy
+            weigthed_areas_above_middle.append(weighted_area_above_middle)
+
+            if accuracy >= 0.99:
                 # >= 0.99 instead of == 1 fixes mamie0007_03.jpg
                 # where Vladimir and Monique are identified with 1.00 x 0.99, and 1.00 and 1.00
                 # but 1.00 x 0.99 is cleaner
                 num_ones += 1
             else:
-                highest_score = max(highest_score, face[1])
+                highest_score = max(highest_score, accuracy)
 
         if len(weigthed_densities) > 0:
             avg_density = sum(weigthed_densities) / len(weigthed_densities)
         else:
             avg_density = None
-        return num_ones, highest_score, avg_density
+
+        avg_area_above_middle = sum(weigthed_areas_above_middle) / len(weigthed_areas_above_middle)
+        return num_ones, highest_score, avg_density, avg_area_above_middle
 
     # We actually don't use the num_faces parameter
     num_faces_identified = num_faces(summaries)
 
     for index, rotation in enumerate(summaries):
-        num_ones, highest_score, avg_density = rotation_summary(rotation)
-        result.append([num_ones, highest_score, avg_density, weight_cum_area(rotation), index])
+        num_ones, highest_score, avg_density, avg_area_above_middle = rotation_summary(rotation)
+        result.append([num_ones, highest_score, avg_area_above_middle, avg_density, weight_cum_area(rotation), index])
 
     # Sort by :
     # - rotation that has the highest number of faces perfectly identified
     # - if there's tie in the # of perfectly identified faces, what's the next highest accuracy ?
+    # - if there's a tie : which rotation has the biggest area above the middle line (assuming a good picture puts the faces on top of the picture)
     # - if there's a tie : which rotation has the lowest density of landmarks on faces ? (usually, there's a good spread of landmarks)
     #   when a face is well identified. Particularly useful for 1 single picture type of photos
     # - if there's a tie there as well : which rotation has the highest area covered ?
-    result.sort(key=lambda x: (-x[0], -x[1], x[2], -x[3]))
+    result.sort(key=lambda x: (-x[0], -x[1], -x[2], x[3], -x[4]))
     # The 1st element of summary is now the "best" rotation config. Its index is stored in the last one element
     correct_index_rotation = result[0][-1]
     rot90_predicted_num = picture.faces_per_rotation["k"][correct_index_rotation]
@@ -324,31 +371,60 @@ def rotate_all(picture_list=None, num_pic=None, log=None, show_steps=False, expo
         pictures_to_process = sorted(os.listdir(CROPPED_DIR))
     print(pictures_to_process)
     config_num = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    log_dict = {
-        "config_num": [],
-        "picture_name": [],
-        "rot90_true_num": [],
-        "rot90_predicted_num": [],
-        "success": [],
-        "rot90_summary": [],
-    }
+    log_rot = LOG_DICT.copy()
     for picture_name in pictures_to_process:
         if picture_name.endswith(".jpg") or picture_name.endswith(".png"):
             picture = Picture(picture_name)
             rotate_one(picture, export_rotated=export_rotated, show_steps=show_steps)
-            log_dict = fill_log(picture, config_num, log_dict)
+            log_rot = fill_log(picture, config_num, LOG_DICT)
     if log == True:
-        log_results(log_dict, "results_rotation.csv")
+        log_results(LOG_DICT, "results_rotations.csv")
 
 
 if __name__ == "__main__":
-    rotate_all(num_pic=10, log=None, show_steps=True)
+    # rotate_all(num_pic=10, log=None, show_steps=True)
+
+    rotations_to_debug = [
+        "mamie0014_01.jpg",
+        "mamie0021_02.jpg",
+        "mamie0029_01.jpg",
+        "mamie0029_02.jpg",
+        "mamie0030_02.jpg",
+        "mamie0031_02.jpg",
+        "mamie0034_01.jpg",
+        "mamie0035_02.jpg",
+        "mamie0036_03.jpg",
+        "mamie0038_02.jpg",
+        "mamie0038_03.jpg",
+        "mamie0039_02.jpg",
+        "mamie0039_03.jpg",
+        "mamie0041_03.jpg",
+        "mamie0045_02.jpg",
+        "mamie0049_02.jpg",
+        "mamie0055_01.jpg",
+        "mamie0063_01.jpg",
+        "mamie0065_01.jpg",
+        "mamie0065_02.jpg",
+        "mamie0067_02.jpg",
+        "mamie0070_01.jpg",
+    ]
+
+    test = ["mamie0070_01.jpg", "mamie0055_01.jpg", "mamie0063_01.jpg", "mamie0049_02.jpg"]  # Aurait pas corrigé
+
+    # If want to rotate, and log the results of the rotations of the list
+
+    # rotate_all(picture_list=rotations_to_debug, log=True, show_steps=True)
+    rotate_all(picture_list=test, log=False, show_steps=True)
+
+    # If want to see the steps, execute what's below :
+
     """
-    picture = Picture(picture_name="mamie0014_01.jpg")
-    print(picture.picture_name)
-    faces_per_rotation = get_faces_per_rotation(picture, dnn_model, show_steps=True)
-    print(picture.faces_per_rotation)
-    correct_k, result = get_rotation_model(picture)
-    print(picture.rot90_results)
-    print(picture.rot90_optimal)
+    for pic in rotations_to_debug:
+        print(f"Treating rotation of picture : {pic}")
+        picture = Picture(picture_name=pic)
+        faces_per_rotation = get_faces_per_rotation(picture, dnn_model, show_steps=True)
+        print(picture.faces_per_rotation)
+        correct_k, result = get_rotation_model(picture)
+        print(f"Rot90 summary : {picture.rot90_summary}")
+        print(f"Rot90 predicted : {picture.rot90_predicted_num} // Rot90 actual : {picture.rot90_true_num}")
     """

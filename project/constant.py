@@ -59,6 +59,48 @@ FINAL_MESSAGE = {
 }
 
 
+FINAL_LOG_CONTOURS = {
+    "execution_time": [],
+    "total_num_contours": [],
+    "num_biggest_contours": [],
+    "num_rectangles_before_split": [],
+    "photos_areas": [],
+    "success": [],
+    "picture_name": [],
+    "rm_black_edges": [],
+    "add_white_margin": [],
+    "blur_method": [],
+    "blur_parameters": [],
+    "threshold": [],
+    "threshold_method": [],
+    "threshold_min": [],
+    "threshold_max": [],
+    "split_contours": [],
+    "true_num_pictures": [],
+    "num_contours_after_split": [],
+    "num_points_per_contour": [],
+    "config_num": [],
+}
+
+FINAL_LOG_ROTATIONS = {
+    "config_num": [],
+    "picture_name": [],
+    "rot90_true_num": [],
+    "rot90_predicted_num": [],
+    "success": [],
+    "rot90_summary": [],
+}
+
+LOG_DICT = {
+    "config_num": [],
+    "picture_name": [],
+    "rot90_true_num": [],
+    "rot90_predicted_num": [],
+    "success": [],
+    "rot90_summary": [],
+}
+
+
 morph_size = 9
 morph_op_dic = {
     0: cv2.MORPH_OPEN,

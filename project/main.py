@@ -18,37 +18,6 @@ import shutil
 # python3 final.py --image "mamie0008.jpg"
 #############################################
 
-FINAL_LOG_CONTOURS = {
-    "execution_time": [],
-    "total_num_contours": [],
-    "num_biggest_contours": [],
-    "num_rectangles_before_split": [],
-    "photos_areas": [],
-    "success": [],
-    "picture_name": [],
-    "rm_black_edges": [],
-    "add_white_margin": [],
-    "blur_method": [],
-    "blur_parameters": [],
-    "threshold": [],
-    "threshold_method": [],
-    "threshold_min": [],
-    "threshold_max": [],
-    "split_contours": [],
-    "true_num_pictures": [],
-    "num_contours_after_split": [],
-    "num_points_per_contour": [],
-    "config_num": [],
-}
-
-FINAL_LOG_ROTATIONS = {
-    "config_num": [],
-    "picture_name": [],
-    "rot90_true_num": [],
-    "rot90_predicted_num": [],
-    "success": [],
-    "rot90_summary": [],
-}
 
 EXECUTION_TIME = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
@@ -119,15 +88,8 @@ def all_steps(mosaic_name, export_contoured=None, export_cropped=None, export_ro
     # Get all contour information
     mosaic, log_contours = get_contours(mosaic_name, export_contoured=export_contoured, show_image=show_contouring)
     # Crop each contour, warpAffine it, and store the cropped images in a mosaic attribute
-    log_dict = {
-        "config_num": [],
-        "picture_name": [],
-        "rot90_true_num": [],
-        "rot90_predicted_num": [],
-        "success": [],
-        "rot90_summary": [],
-    }
-    log_rot = log_dict.copy()  # to prevent local variable 'log_rot' referenced before assignment errors
+
+    log_rot = LOG_DICT.copy()  # to prevent local variable 'log_rot' referenced before assignment errors
     if mosaic.success == True:
         crop_mosaic(mosaic, export_cropped=export_cropped, show_image=show_cropping)
         # For each cropped Picture of the mosaic, get its correct rotation
@@ -137,7 +99,7 @@ def all_steps(mosaic_name, export_contoured=None, export_cropped=None, export_ro
             cv2_array = mosaic.cropped_pictures["img"][i]
             picture = Picture(picture_name=picture_name, cv2_array=cv2_array)
             rotate_one(picture, export_rotated=export_rotated, show_steps=show_rotation)
-            log_rot = fill_log(picture, EXECUTION_TIME, log_dict)
+            log_rot = fill_log(picture, EXECUTION_TIME, LOG_DICT)
     return mosaic, log_contours, log_rot
 
 
@@ -212,6 +174,8 @@ if __name__ == "__main__":
     # Test with long list
     # python3 main.py -m "mamie0003.jpg" "mamie0000.jpg" "mamie0001.jpg" -log_c -exco "fail_only" -excr -exro --no-show_contouring --no-show_cropping --no-show_rotation
     # python3 main.py -m "mamie0022.jpg" --no-log_contouring --no-log_rotations -exco "all" -excr -exro --show_contouring --show_cropping --no-show_rotation
+
+    # python3 main.py -m "mamie0193.jpg" --no-log_contouring --no-log_rotations -exco "all" -excr -exro --show_contouring --show_cropping --no-show_rotation
 
     ap = argparse.ArgumentParser()
     ap.add_argument("-m", "--mosaic_list", nargs="+", required=False, help="Name of mosaic - located in source dir")
