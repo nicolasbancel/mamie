@@ -119,6 +119,7 @@ def dnn_model(picture, k, model=YUNET_PATH, show_steps=None):
         if top_y > middle_y:
             area_above_middle = 0
             area_below_middle = face_width * face_height
+            height_above_middle = 0
         else:
             height_above_middle = min(top_y + face_height, middle_y) - top_y
             area_above_middle = height_above_middle * face_width
@@ -272,10 +273,12 @@ def get_rotation_model(picture):
 
         if len(weigthed_densities) > 0:
             avg_density = sum(weigthed_densities) / len(weigthed_densities)
+            avg_area_above_middle = sum(weigthed_areas_above_middle) / len(weigthed_areas_above_middle)
         else:
-            avg_density = None
+            # Can't be None
+            avg_density = 99  # giving it a bad ranking
+            avg_area_above_middle = 0  # giving it a bad ranking
 
-        avg_area_above_middle = sum(weigthed_areas_above_middle) / len(weigthed_areas_above_middle)
         return num_ones, highest_score, avg_density, avg_area_above_middle
 
     # We actually don't use the num_faces parameter
@@ -285,6 +288,7 @@ def get_rotation_model(picture):
         num_ones, highest_score, avg_density, avg_area_above_middle = rotation_summary(rotation)
         result.append([num_ones, highest_score, avg_area_above_middle, avg_density, weight_cum_area(rotation), index])
 
+    print(result)
     # Sort by :
     # - rotation that has the highest number of faces perfectly identified
     # - if there's tie in the # of perfectly identified faces, what's the next highest accuracy ?
@@ -292,7 +296,7 @@ def get_rotation_model(picture):
     # - if there's a tie : which rotation has the lowest density of landmarks on faces ? (usually, there's a good spread of landmarks)
     #   when a face is well identified. Particularly useful for 1 single picture type of photos
     # - if there's a tie there as well : which rotation has the highest area covered ?
-    result.sort(key=lambda x: (-x[0], -x[1], -x[2], x[3], -x[4]))
+    result.sort(key=lambda x: (-1 * x[0], -1 * x[1], -1 * x[2], x[3], -1 * x[4]))
     # The 1st element of summary is now the "best" rotation config. Its index is stored in the last one element
     correct_index_rotation = result[0][-1]
     rot90_predicted_num = picture.faces_per_rotation["k"][correct_index_rotation]
@@ -413,8 +417,8 @@ if __name__ == "__main__":
 
     # If want to rotate, and log the results of the rotations of the list
 
-    # rotate_all(picture_list=rotations_to_debug, log=True, show_steps=True)
-    rotate_all(picture_list=test, log=False, show_steps=True)
+    rotate_all(picture_list=rotations_to_debug, log=True, show_steps=True)
+    # rotate_all(picture_list=test, log=False, show_steps=True)
 
     # If want to see the steps, execute what's below :
 
