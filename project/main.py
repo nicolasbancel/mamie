@@ -106,7 +106,7 @@ def all_steps(mosaic_name, export_contoured=None, export_cropped=None, export_ro
             cv2_array = mosaic.cropped_pictures["img"][i]
             picture = Picture(picture_name=picture_name, cv2_array=cv2_array)
             rotate_one(picture, export_rotated=export_rotated, show_steps=show_rotation)
-            fill_log(picture, EXECUTION_TIME, log_dict)
+            log_rot = fill_log(picture, EXECUTION_TIME, log_dict)
     return mosaic, log_contours, log_rot
 
 

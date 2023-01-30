@@ -392,7 +392,7 @@ if __name__ == "__main__":
     # rotate_all(num_pic=10, log=None, show_steps=True)
 
     rotations_to_debug = [
-        "mamie0014_01.jpg",
+        "mamie0014_01.jpg",  # Fixed
         "mamie0021_02.jpg",
         "mamie0029_01.jpg",
         "mamie0029_02.jpg",
