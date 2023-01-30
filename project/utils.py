@@ -361,6 +361,33 @@ def white_triangle(mosaic_name="mamie0022.jpg", triangle_length=WHITE_TRIANGLE_L
     filename = mosaic_name.split(".")[0]
     cv2.imwrite(f"{filename}_img_whiten_edges.jpg", img_whiten_edges)
     cv2.imwrite(f"{filename}_img_triangle.jpg", img_triangle)
+    return img_whiten_edges, img_triangle
+
+
+def draw_point(img, point: tuple, show_image=True, write=True):
+    """
+    img.shape returns height (num_rows / Y), width (num_columns / X), channels
+    """
+    # copy = img.copy()
+    copy = img  # Actually writing on the image
+    color = (0, 0, 255)
+    cv2.circle(copy, point, radius=5, color=color, thickness=cv2.FILLED)
+    if show_image:
+        show("Position of pixel", copy)
+    if write:
+        cv2.imwrite("point_pixel.jpg", copy)
+    return copy
+
+
+def find_black_edge(mosaic_name="mamie0022.jpg", color=(255, 255, 255)):
+    img = load_original(mosaic_name, dir="source")
+    img_whiten_edges = img.copy()
+    num_row, num_col = img_whiten_edges.shape[:2]
+    top_left = (0, 0)
+    bottom_right_vertical = (THICKNESS_VERTICAL, num_row)
+    bottom_right_horizontal = (num_col, THICKNESS_HORIZONTAL)
+    cv2.rectangle(img_whiten_edges, top_left, bottom_right_vertical, color, -1)
+    cv2.rectangle(img_whiten_edges, top_left, bottom_right_horizontal, color, -1)
 
 
 def initializeTrackbars(intialTracbarVals=0, threshold=True):
@@ -378,4 +405,31 @@ def valTrackbars():
 
 
 if __name__ == "__main__":
+    # from utils import *
+    mosaic_name = "mamie0193.jpg"
+    color = (255, 255, 255)
+    img = load_original(mosaic_name, dir="source")
+    img_whiten_edges = img.copy()
+    num_row, num_col = img_whiten_edges.shape[:2]
+    top_left = (0, 0)
+    bottom_right_vertical = (THICKNESS_VERTICAL, num_row)
+    bottom_right_horizontal = (num_col, THICKNESS_HORIZONTAL)
+    cv2.rectangle(img_whiten_edges, top_left, bottom_right_vertical, color, -1)
+    cv2.rectangle(img_whiten_edges, top_left, bottom_right_horizontal, color, -1)
+    max_y, max_x = img_whiten_edges.shape[:2]
+
+    # 600 is not bad, starting to get close to the edge of the actual Picture
+    # draw_point(img_whiten_edges, (max_x - 600, THICKNESS_HORIZONTAL), show_image=True, write=False)
+
+    img_whiten_edges_copy = img_whiten_edges.copy()
+    # X_OFFSET = 600
+    X_OFFSET = 40
+    for i in range(15):
+        point = (max_x - X_OFFSET, THICKNESS_HORIZONTAL - 4 + i)
+        # array[row_number:col_number]. So actually written as array[Y:X]
+        # print(f"Point position : X = {point[0]}, Y = {point[1]}, BGR = {img_whiten_edges[point[0], point[1]]}")
+        print(f"Point position : X = {point[0]}, Y = {point[1]}, BGR = {img_whiten_edges[point[1], point[0]]}")
+        draw_point(img_whiten_edges_copy, point, show_image=True, write=False)
+    draw_point(img_whiten_edges_copy, point, show_image=True, write=True)
+
     pass

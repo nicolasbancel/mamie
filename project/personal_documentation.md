@@ -46,7 +46,7 @@ rotate_all(picture_list=tough_ones, log=True, show_steps=True):
 
 - Run 
 
-# Cropping documentation
+# Residual black triangle
 
 - Not done well for
   - `"mamie0022_02.jpg"`
@@ -82,3 +82,13 @@ show("Img Grey", grey)
 
 ["mamie0003.jpg","mamie0000.jpg","mamie0001.jpg","mamie0004.jpg","mamie0007.jpg","mamie0011.jpg","mamie0013.jpg","mamie0014.jpg","mamie0036.jpg"]
 
+# Residual black edge
+
+- It makes a couple of mosaics fail
+  - `mamie0193.jpg`
+  - `mamie0188.jpg`
+  - `mamie0186.jpg`
+  - `mamie0185.jpg`
+  - `mamie0184.jpg`
+  - `mamie0210.jpg` (to be precise : `mamie0210_04.jpg`)
+  - `mamie0211.jpg`

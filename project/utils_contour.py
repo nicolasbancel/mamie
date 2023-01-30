@@ -111,11 +111,12 @@ def fix_contours(mosaic, show_image=None):
     for elem in mosaic.contours_main:
         # If need to print or draw : do it on elem
         contour = Contour(elem)
-        cv = contour.plot_points(show=False)
+        # cv = contour.plot_points(show_canvas=True)
+        cv = contour.plot_points(show_canvas=False)
         if contour.scission_point is not None:
             # print("Contour needs to be splitted")
             contour.find_extrapolation()
-            split_contours, intersection_point = contour.split_contour(mosaic.img_source, cv)
+            split_contours, intersection_point = contour.split_contour(mosaic.img_source, cv, show_image=True)
             new_contours = split_contours
             # show("cv", cv)
         else:

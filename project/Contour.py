@@ -29,7 +29,7 @@ class Contour:
         self.num_points = len(np_array)
         self.area = cv2.contourArea(np_array)
         self.get_angles()
-        self.enrich_contour()
+        self.enrich_contour(exclude_bad_points=True)
 
     pass
 
@@ -164,7 +164,7 @@ class Contour:
 
         return self.enriched, self.scission_information, self.middle_point, self.scission_point, self.max_side_length
 
-    def plot_points(self, show=None):
+    def plot_points(self, show_canvas=None):
         # Shows bad points anyways since no cleaning has been done yet
 
         contour = from_enriched_to_regular(self.enriched)
@@ -185,7 +185,7 @@ class Contour:
             for dict in self.scission_information:
                 cv2.circle(cv, center=tuple(dict["middle_point"]), radius=20, color=(42, 35, 9), thickness=cv2.FILLED)
 
-        if show == True:
+        if show_canvas == True:
             show("Canvas with regular, scission, bad, and middle points", cv)
 
         return cv
