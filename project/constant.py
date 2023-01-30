@@ -91,16 +91,6 @@ FINAL_LOG_ROTATIONS = {
     "rot90_summary": [],
 }
 
-LOG_DICT = {
-    "config_num": [],
-    "picture_name": [],
-    "rot90_true_num": [],
-    "rot90_predicted_num": [],
-    "success": [],
-    "rot90_summary": [],
-}
-
-
 morph_size = 9
 morph_op_dic = {
     0: cv2.MORPH_OPEN,
