@@ -107,4 +107,35 @@ show("Img Grey", grey)
 
 # Incorrect rotation
 
+- `mamie0014_01.jpg` - Fixed now ✅
 - `mamie0029_02.jpg`
+- `mamie0029_01.jpg` - Can't do much. Trees 🚫 
+- `mamie0029_02.jpg` - Weird. Face not detected. 🚫
+- `mamie0030_02.jpg` - Face is below middle line 🙄
+- `mamie0031_02.jpg` - Can't do much. Trees 🚫 
+- `mamie0034_01.jpg` - Faces are below middle line 🙄
+- `mamie0035_02.jpg` - Can't do much. Garden 🚫 
+- `mamie0036_03.jpg` - Can't do much. City 🚫 
+- `mamie0038_02.jpg` - Fixed now ✅
+- `mamie0038_03.jpg` - Can't do much. City 🚫 
+- `mamie0039_02.jpg` - Can't do much. Garden 🚫 
+- `mamie0039_03.jpg` - Weird. Face not detected in correct config 🚫
+- `mamie0041_03.jpg` - Faces are below middle line 🙄
+- `mamie0045_02.jpg` - Can't do much. Water 🚫 
+- `mamie0049_02.jpg` - (Weird) Faces not well detected in correct config 🚫 
+- `mamie0055_01.jpg` - XXXXX
+- `mamie0063_01.jpg` - XXXXX
+- `mamie0065_01.jpg` - Fixed now ✅
+- `mamie0065_02.jpg` - Fixed now ✅
+- `mamie0067_02.jpg` - Weird. Face not detected in correct config 🚫
+- `mamie0070_01.jpg` - Fixed now ✅
+- `mamie0083_02.jpg` - Well detected on side + more over middle line 🙄
+- `mamie0084_03.jpg` - Faces detected better in incorrect config 🚫
+- `mamie0107_01.jpg` - Olivia - Face is below middle line 🙄
+- `mamie0131_01.jpg` - Cyril - Faces detected better in incorrect config 🚫
+- `mamie0164_01.jpg` - Mamie - Faces detected better in incorrect config 🚫
+- `mamie0165_01.jpg` - Olivia Emilie - Faces detected better in incorrect config (Gros plan) 🚫
+- `mamie0182_01.jpg` - Portrait Mamie facile - Faces detected better in incorrect config (Gros plan) 🚫
+- `mamie0204_01.jpg` - Naissance Matthieu facile - Faces detected better in incorrect config (Gros plan) 🚫
+- `mamie0209_02.jpg` - Potes Club Med - Fixed now ✅
+- `mamie0252_02.jpg` - Mamie Facile - Faces detected better in incorrect config (Gros plan) 🚫

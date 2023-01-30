@@ -414,6 +414,16 @@ if __name__ == "__main__":
         "mamie0065_02.jpg",
         "mamie0067_02.jpg",
         "mamie0070_01.jpg",
+        "mamie0083_02.jpg",
+        "mamie0084_03.jpg",
+        "mamie0107_01.jpg",
+        "mamie0131_01.jpg",
+        "mamie0164_01.jpg",
+        "mamie0165_01.jpg",
+        "mamie0182_01.jpg",
+        "mamie0204_01.jpg",
+        "mamie0209_02.jpg",
+        "mamie0252_02.jpg",
     ]
 
     test = ["mamie0070_01.jpg", "mamie0055_01.jpg", "mamie0063_01.jpg", "mamie0049_02.jpg"]  # Aurait pas corrigé
