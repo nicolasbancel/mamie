@@ -2,9 +2,9 @@ import numpy as np
 from utils import *
 import cv2
 from statistics import mean
+from shapely import Point, MultiPoint
 from shapely.geometry import Polygon, LineString
 from shapely.ops import linemerge, unary_union, polygonize
-from shapely import Point, MultiPoint
 from sympy import symbols, Eq, solve
 
 CANVAS_ROWS = 6000
@@ -338,11 +338,11 @@ class Contour:
 if __name__ == "__main__":
     # from Contour import *
     # from Mosaic import *
-    mosaic_name = "mamie0009.jpg"
-    mosaic = Mosaic(mosaic_name)
-    find_contours(mosaic, retrieval_mode=cv2.RETR_EXTERNAL)
-    draw_main_contours(mosaic, show_image=True)
-    fix_contours(mosaic)
+    # mosaic_name = "mamie0009.jpg"
+    # mosaic = Mosaic(mosaic_name)
+    # find_contours(mosaic, retrieval_mode=cv2.RETR_EXTERNAL)
+    # draw_main_contours(mosaic, show_image=True)
+    # fix_contours(mosaic)
 
     """
     first_contour = mosaic.contours_main[0]

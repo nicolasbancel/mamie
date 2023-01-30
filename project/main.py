@@ -140,7 +140,7 @@ def main(
     for mosaic_name in mosaics_to_process:
         now = datetime.now()
         dt = now.strftime("%H:%M:%S")
-        if mosaic_name.endswith(".jpg") or mosaic_name.endswith(".png"):
+        if mosaic_name.endswith(".jpg") or mosaic_name.endswith(".jpeg") or mosaic_name.endswith(".png"):
             print(f"\n Time is : {dt} - Treating : {mosaic_name} \n")
             mosaic, log_contours, log_rot = all_steps(
                 mosaic_name, export_contoured, export_cropped, export_rotated, show_contouring, show_cropping, show_rotation
@@ -184,6 +184,9 @@ if __name__ == "__main__":
     # Test with long list
     # python3 main.py -m "mamie0003.jpg" "mamie0000.jpg" "mamie0001.jpg" -log_c -exco "fail_only" -excr -exro --no-show_contouring --no-show_cropping --no-show_rotation
     # python3 main.py -m "mamie0022.jpg" --no-log_contouring --no-log_rotations -exco "all" -excr -exro --show_contouring --show_cropping --no-show_rotation
+
+    # Test Lara
+    # python3 main.py -m "lara0001.jpg" "lara0002.jpg" "lara0003.jpg" "lara0004.jpg" -exco "all" -excr -exro --show_contouring --show_cropping --show_rotation
 
     # python3 main.py -m "mamie0193.jpg" --no-log_contouring --no-log_rotations -exco "all" -excr -exro --show_contouring --show_cropping --no-show_rotation
 
