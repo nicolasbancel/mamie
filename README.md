@@ -16,7 +16,7 @@ Script which automatically crops and rotates pictures. There are 3 main "objects
   -  `data/contoured/success` : log of the contours done well. Steps stored in a .jpg file
   - `data/cropped` : the contours are then extracted from the original picture. Since the contour may not be 100% straight, it is reshaped / rotated into a straight rectangle using the warpAffine method (not Perspective because the angles are already 90% : there's no need to try to extrapolate what a front view would look like : it is already a front view, with 90° angles : they are just rotated)
   - `data/rotated_automatic` : cropped pictures are then rotated. Method : trying 4 rotations of 90°, determining the rotation where the highest / cleanest number of faces are detected. Order of priority :
-    - # of faces detected with accuracy = 1
+    - Number of faces detected with accuracy = 1
     - 2nd highest accuracy score after 1
     - Highest area of faces captured above the middle line, weighted by the accuracy (this assumes in most pictures with faces that the faces are above the middle - which is not really correct - it doesn't work all the time)
     - 2 last methods of ranking are useless and deprecated
@@ -53,5 +53,5 @@ Script which automatically crops and rotates pictures. There are 3 main "objects
   - [Step two](https://github.com/nicolasbancel/mamie/tree/main/data/mosaic/all_steps/02_mamie0009_mosaic_contoured.jpeg) : Contour is successful. 3 main contours identified (3 pictures are supposed to be found) & contours have no more than 5 corners. The picture at the bottom is not straight, it has a rectangle
   - [Step three](https://github.com/nicolasbancel/mamie/tree/main/data/mosaic/all_steps/03_mamie0009_03_boundingrectangle.jpeg) : cropping can only be done on a "rectangle", which has a top left corner, and a bottom right corner. It is not possible to extract from a numpy array an "angled" rectangle. What's extracted is the bounding rectangle, with its rotation + center of rotation captured, though. If no other modification was made, we would end up with the black edges seen in this picture;
   - [Step four](https://github.com/nicolasbancel/mamie/tree/main/data/mosaic/all_steps/04_mamie0009_03_warpaffine.jpeg) : using the metadata available for that rectangle, we rotate it with the warpAffine method.
-  -[Step five](https://github.com/nicolasbancel/mamie/tree/main/data/mosaic/all_steps/04_mamie0009_03_rotated.jpeg) : rotation is done using the method explained above, in section **Project structure**
+  - [Step five](https://github.com/nicolasbancel/mamie/tree/main/data/mosaic/all_steps/04_mamie0009_03_rotated.jpeg) : rotation is done using the method explained above, in section **Project structure**
 

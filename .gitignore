@@ -47,11 +47,11 @@ __pycache__/
 !data/mosaic/rotated_automatic/mamie0090_05.jpg
 
 # Example - end to end
-!data/mosaic/all_steps/01_mamie0009_mosaic.jpeg
-!data/mosaic/all_steps/02_mamie0009_mosaic_contoured.jpeg
-!data/mosaic/all_steps/03_mamie0009_03_boundingrectangle.jpeg
-!data/mosaic/all_steps/04_mamie0009_03_warpAffine.jpeg
-!data/mosaic/all_steps/05_mamie0009_03_rotated.jpeg
+!data/all_steps/01_mamie0009_mosaic.jpeg
+!data/all_steps/02_mamie0009_mosaic_contoured.jpeg
+!data/all_steps/03_mamie0009_03_boundingrectangle.jpeg
+!data/all_steps/04_mamie0009_03_warpAffine.jpeg
+!data/all_steps/05_mamie0009_03_rotated.jpeg
 
 
 
