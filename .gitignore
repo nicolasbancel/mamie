@@ -6,3 +6,44 @@ __pycache__/
 *.xml
 .env
 *.onnx
+
+# Failed because more than 6 points on one of the contours
+!data/mosaic/source/mamie0046.jpg
+!data/mosaic/contoured/failure/mamie0046.jpg
+!data/mosaic/to_treat_manually/mamie0046.jpg
+!data/mosaic/to_treat_manually/mamie0046_01.jpg
+!data/mosaic/to_treat_manually/mamie0046_02.jpg
+
+# Failed because # main contours identified != true # pictures on mosaic
+!data/mosaic/source/mamie0047.jpg
+!data/mosaic/contoured/failure/mamie0047.jpg
+!data/mosaic/to_treat_manually/mamie0047.jpg
+!data/mosaic/to_treat_manually/mamie0047_01.jpg
+!data/mosaic/to_treat_manually/mamie0047_02.jpg
+!data/mosaic/to_treat_manually/mamie0047_03.jpg
+
+# Success + interesting warpaffine for the mamie0009_03.jpg
+!data/mosaic/source/mamie0009.jpg
+!data/mosaic/contoured/success/mamie0009.jpg
+!data/mosaic/cropped/mamie0009_01.jpg
+!data/mosaic/cropped/mamie0009_02.jpg
+!data/mosaic/cropped/mamie0009_03.jpg
+!data/mosaic/rotated_automatic/mamie0009_01.jpg
+!data/mosaic/rotated_automatic/mamie0009_02.jpg
+!data/mosaic/rotated_automatic/mamie0009_03.jpg
+
+# Success
+!data/mosaic/source/mamie0090.jpg
+!data/mosaic/contoured/success/mamie0090.jpg
+!data/mosaic/cropped/mamie0090_01.jpg
+!data/mosaic/cropped/mamie0090_02.jpg
+!data/mosaic/cropped/mamie0090_03.jpg
+!data/mosaic/cropped/mamie0090_04.jpg
+!data/mosaic/cropped/mamie0090_05.jpg
+!data/mosaic/rotated_automatic/mamie0090_01.jpg
+!data/mosaic/rotated_automatic/mamie0090_02.jpg
+!data/mosaic/rotated_automatic/mamie0090_03.jpg
+!data/mosaic/rotated_automatic/mamie0090_04.jpg
+!data/mosaic/rotated_automatic/mamie0090_05.jpg
+
+
