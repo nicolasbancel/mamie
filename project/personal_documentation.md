@@ -1,4 +1,4 @@
-# Rotation Documentation
+# Rotation + Cropping Corner cases
 
 ## Links
 
@@ -39,12 +39,8 @@ tough_ones = ["mamie0003_01.jpg",
 ]
 
 rotate_all(picture_list=tough_ones, log=True, show_steps=True):
-
 ```
 
-## Scripts 
-
-- Run 
 
 # Residual black triangle
 
@@ -63,24 +59,29 @@ rotate_all(picture_list=tough_ones, log=True, show_steps=True):
   - `mamie0261.jpg` - and more precisely Papa retour Boston : `mamie0261_03.jpg` ✅
 
 
-["mamie0140.jpg", "mamie0138.jpg", "mamie0276.jpg","mamie0261.jpg"]
-
-
 See the black edge entirely : 
 ```python
 from Mosaic import *
 
+# Or easily visible on any of the elements of this list
+
+black_edge = [
+  "mamie0003.jpg",
+  "mamie0000.jpg",
+  "mamie0001.jpg",
+  "mamie0004.jpg",
+  "mamie0007.jpg",
+  "mamie0011.jpg",
+  "mamie0013.jpg",
+  "mamie0014.jpg",
+  "mamie0036.jpg"
+]
+
 mosaic = Mosaic(mosaic_name = "mamie0171.jpg")
-
-
-mosaic = Mosaic(mosaic_name = "mamie0022.jpg")
 show("Img Original", mosaic.img)
 grey = cv2.cvtColor(mosaic.img, cv2.COLOR_BGR2GRAY)
 show("Img Grey", grey)
 ```
-
-
-["mamie0003.jpg","mamie0000.jpg","mamie0001.jpg","mamie0004.jpg","mamie0007.jpg","mamie0011.jpg","mamie0013.jpg","mamie0014.jpg","mamie0036.jpg"]
 
 # Residual black edge
 
@@ -89,7 +90,6 @@ show("Img Grey", grey)
 - Small residual black edge, not a bad point, but creates a weird angle / margin in the contour
   - `mamie0024.jpg`
   - `mamie0030.jpg` 
-
 
 - It makes a couple of mosaics fail
   - `mamie0184.jpg`
