@@ -130,6 +130,7 @@ def draw_main_contours(
     """
 
     # no_approx_main_contours : has no shape approximation
+    MIN_AREA_THRESHOLD = 500000  # Decreasing size of the contour
     no_approx_main_contours = sorted([c for c in contours if cv2.contourArea(c) > MIN_AREA_THRESHOLD], key=cv2.contourArea, reverse=True)
 
     contours_main = []
@@ -167,11 +168,13 @@ def draw_main_contours(
     if show_image:
         show(f"Original w Main Contours", img_w_main_contours)
 
-    return img_w_main_contours
+    return img_w_main_contours, contours_main
 
 
 if __name__ == "__main__":
-    # from Mosaic import *
+    from Mosaic import *
+    from matplotlib import pyplot as plt
+
     mosaic_name = "lara0001.jpg"
     img = load_original(mosaic_name, dir="source")
     img_white_edges = whiten_edges(img, show_image=True)
@@ -179,7 +182,40 @@ if __name__ == "__main__":
     img_white_borders = add_borders(img_white_edgesxtriangle, show_image=True)
     img_grey = grey_original(img_white_borders, show_image=True)
     img_blur = cv2.GaussianBlur(img_grey, (3, 3), 0)
-    img_thresh = thresh(img_blur, show_image=True)
+    num_rows, num_columns = img_blur.shape[:2]
+    img_thresh = thresh(img_blur, show_image=True))
+
+
+    # Show histogram
+    # https://www.geeksforgeeks.org/opencv-python-program-analyze-image-using-histogram/
+    img_blur_copy = img_blur.copy()
+    histr = cv2.calcHist([img_blur_copy], [0], None, [256], [0, 256])
+    plt.plot(histr)
+    plt.show()
+    # Background color is between 50 and 60
+    # So anything between 50 and 60 should be made black
+
+    # Test replacement of all pixels with 50 to 60, or equal to 0 black to black
+    # Otherwise keep as is
+    
+    custom_thresh = img_blur.copy()
+    for y in range(num_rows-1):
+        for x in range(num_columns-1):
+            if 50 <= custom_thresh[y,x] <= 60 or custom_thresh[y,x] == 0:
+                custom_thresh[y,x] = 0
+    contours, hierarchy = cv2.findContours(custom_thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    img_w_main_contours, contours_main = draw_main_contours(
+    img_white_borders,
+    contours,
+    contour_size=CONTOUR_SIZE,
+    contours_color=CONTOUR_COLOR_DEFAULT,
+    precision_param=CONTOUR_PRECISION_PARAM,
+    only_rectangles=None,
+    show_image=True
+    )
+
+    # below 60 should be black
+    img_thresh = thresh(img_blur_copy, thresh_min=60, thresh_max=255, show_image=True)
 
     step = 20
     thresh_min = []
@@ -190,7 +226,7 @@ if __name__ == "__main__":
     # Between 60 and 80 is good
     img_thresh = thresh(img_blur, thresh_min=70, thresh_max=255, show_image=True)
     contours, hierarchy = cv2.findContours(img_thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    draw_main_contours(
+    img_w_main_contours, contours_main = draw_main_contours(
         img_white_borders,
         contours,
         contour_size=CONTOUR_SIZE,
@@ -199,3 +235,5 @@ if __name__ == "__main__":
         only_rectangles=None,
         show_image=True,
     )
+
+    no_approx_main_contours = sorted(contours, key=cv2.contourArea, reverse=True)
