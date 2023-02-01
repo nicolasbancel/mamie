@@ -161,7 +161,7 @@ def draw_main_contours(
 
     # pdb.set_trace()
     for contour in contours_main:
-        draw(img_w_main_contours, contour, color_index=0, show_points=True, show_index=True)
+        draw(img_w_main_contours, contour, color_index=0, show_points=True, show_index=False)
     # cv2.drawContours(img_w_main_contours, contours_main, -1, contours_color, contour_size)
     # print(f"Out of {num_biggest_contours} biggest contours - {num_rectangles} are rectangles")
 
@@ -183,8 +183,7 @@ if __name__ == "__main__":
     img_grey = grey_original(img_white_borders, show_image=True)
     img_blur = cv2.GaussianBlur(img_grey, (3, 3), 0)
     num_rows, num_columns = img_blur.shape[:2]
-    img_thresh = thresh(img_blur, show_image=True))
-
+    img_thresh = thresh(img_blur, show_image=True)
 
     # Show histogram
     # https://www.geeksforgeeks.org/opencv-python-program-analyze-image-using-histogram/
@@ -197,31 +196,33 @@ if __name__ == "__main__":
 
     # Test replacement of all pixels with 50 to 60, or equal to 0 black to black
     # Otherwise keep as is
-    
+
     custom_thresh = img_blur.copy()
-    for y in range(num_rows-1):
-        for x in range(num_columns-1):
-            if 50 <= custom_thresh[y,x] <= 60 or custom_thresh[y,x] == 0:
-                custom_thresh[y,x] = 0
+    for y in range(num_rows - 1):
+        for x in range(num_columns - 1):
+            if 50 <= custom_thresh[y, x] <= 60 or custom_thresh[y, x] == 0:
+                custom_thresh[y, x] = 0
     contours, hierarchy = cv2.findContours(custom_thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     img_w_main_contours, contours_main = draw_main_contours(
-    img_white_borders,
-    contours,
-    contour_size=CONTOUR_SIZE,
-    contours_color=CONTOUR_COLOR_DEFAULT,
-    precision_param=CONTOUR_PRECISION_PARAM,
-    only_rectangles=None,
-    show_image=True
+        img_white_borders,
+        contours,
+        contour_size=CONTOUR_SIZE,
+        contours_color=CONTOUR_COLOR_DEFAULT,
+        precision_param=CONTOUR_PRECISION_PARAM,
+        only_rectangles=None,
+        show_image=True,
     )
 
     # below 60 should be black
     img_thresh = thresh(img_blur_copy, thresh_min=60, thresh_max=255, show_image=True)
 
+    """
     step = 20
     thresh_min = []
     for i in range(10):
         thresh_min.append(i * step)
         img_thresh = thresh(img_blur, thresh_min=i * step, thresh_max=255, show_image=True)
+    """
 
     # Between 60 and 80 is good
     img_thresh = thresh(img_blur, thresh_min=70, thresh_max=255, show_image=True)

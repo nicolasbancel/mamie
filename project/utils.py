@@ -56,7 +56,7 @@ def show(title, image):
     cv2.waitKey(1)
 
 
-def draw(img, contour, color_index=0, show_points=True, show_index=False, legend: list = []):
+def draw(img, contour, color_index=0, show_points=False, show_index=False, legend: list = []):
     """
     This function DOES impact img - it simply display on top of a duplicate
     Font scale of 4 is good (8 is way too big)
