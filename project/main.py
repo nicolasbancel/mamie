@@ -145,7 +145,7 @@ def main(
             mosaic, log_contours, log_rot = all_steps(
                 mosaic_name, export_contoured, export_cropped, export_rotated, show_contouring, show_cropping, show_rotation
             )
-            print(f"Log rot : {log_rot}")
+            # print(f"Log rot : {log_rot}")
             for key in set(FINAL_LOG_CONTOURS) - {"config_num"}:
                 FINAL_LOG_CONTOURS[key].append(log_contours[key])
             FINAL_LOG_CONTOURS["config_num"].append(CONFIG_NUM)
@@ -169,6 +169,7 @@ if __name__ == "__main__":
     # If exporting only failed contours
     # python3 main.py -log_c -log_r -exco "fail_only" -excr -exro --no-show_contouring --no-show_cropping --no-show_rotation
 
+    # If exporting success and failures
     # python3 main.py -log_c -log_r -exco "all" -excr -exro --no-show_contouring --no-show_cropping --no-show_rotation
 
     ################################################################
