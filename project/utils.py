@@ -238,20 +238,20 @@ def stack_images(list_labels, list_images, message, num_columns=4):
 
 def config_num():
     RESULTS_PATH = PROJECT_DIR + "results/"
-    csv_file = RESULTS_PATH + "results.csv"
+    csv_file = RESULTS_PATH + "results_contours.csv"
     if path.exists(csv_file):
         with open(csv_file, "r") as file:
-            csvread = csv.reader(file)
-            lines = []
+            csvread = csv.DictReader(file)
+            config_nums = []
             for row in csvread:
-                # print(row)
-                lines.append(row)
-            max_config_num = int(lines[-1][-1])
-            # print(max_config_num)
-            current_config_nun = max_config_num + 1
+                config_nums.append(int(row.get("config_num")))
+        if None in config_nums:
+            current_config_num = 1
+        else:
+            current_config_num = max(config_nums) + 1
     else:
-        current_config_nun = 1
-    return current_config_nun
+        current_config_num = 1
+    return current_config_num
 
 
 def log_results(message: dict, result_file_name):
