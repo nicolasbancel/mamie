@@ -84,7 +84,7 @@ class Contour:
                     # Since those are the extreme points of the contour (corners)
                     contour_[index][-1] = "bad"
 
-        enriched_contour = []
+        enriched = []
         idx_to_remove = []
 
         # Exclusion or not of the bad points of the contour
@@ -96,12 +96,29 @@ class Contour:
                     idx_to_remove.append(index)
                     # And point is not being added to enriched_contour (hence, it is removed)
                 else:
-                    enriched_contour.append(pt)
+                    enriched.append(pt)
             # remove bad points from angle_degrees
             # https://stackoverflow.com/questions/11303225/how-to-remove-multiple-indexes-from-a-list-at-the-same-time
 
         else:
-            enriched_contour = contour_
+            enriched = contour_
+
+        # Scenario where Pt 1 - Bad Point - Pt 2 : where Pt 1 and Pt 2 are extremely close to each other
+        # After we get rid of Bad Point in previous section
+        # The below gets rid of Pt 2 if Pt 2 is too close to Pt 1
+
+        enriched_contour = []
+
+        for idx, point in enumerate(enriched):
+            y_curr = float(point[0])
+            y_next = float(enriched[(idx + 1) % len(enriched)][0])
+
+            x_curr = float(point[1])
+            x_next = float(enriched[(idx + 1) % len(enriched)][1])
+
+            distance = sqrt((x_curr - x_next) ** 2 + (y_curr - y_next) ** 2)
+            if distance > 50:
+                enriched_contour.append(point)
 
         ## WATCH OUT !!! angle_degress DOES NOT HAVE THE SAME SHAPE AS enriched_contour SINCE WE'VE DELETED SOME POINTS FROM
         ## ENRICHED CONTOURS, BUT NOT IN angle_degrees
@@ -352,4 +369,6 @@ if __name__ == "__main__":
     contour.find_extrapolation()
     contour.split_contour(mosaic)
     """
+
+    # from pdb : from IPython import embed; embed()
     pass

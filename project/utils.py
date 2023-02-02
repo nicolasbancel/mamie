@@ -30,6 +30,8 @@ def load_original(file_name, dir):
         file_path = os.path.join(CONTOURED_DIR, file_name)
     elif dir == "cropped":
         file_path = os.path.join(CROPPED_DIR, file_name)
+    elif dir == "to_treat":
+        file_path = os.path.join(TO_TREAT_DIR, file_name)
     original = cv2.imread(file_path)
     return original
 
@@ -380,16 +382,42 @@ def draw_point(img, point: tuple, show_image=True, write=True):
 
 
 def log_coordinates(event, x, y, flags, params):
-    coords = []
+    global coords
     if event == cv2.EVENT_LBUTTONDOWN:
         print(f"x : {x} - y : {y}")
         print(f"({x},{y})")
         print(f"Flags : {flags}")
         print(f"Params : {params}")
-        coords.append((x, y))
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        cv2.putText(img, str(x) + "," + str(y), (x, y), font, 5, (255, 0, 0), 2)
-        cv2.imshow("Picture to investigate", img)
+        coords.append([x, y])
+        # font = cv2.FONT_HERSHEY_SIMPLEX
+        # cv2.putText(new_img, str(x) + "," + str(y), (x, y), font, 5, (255, 0, 0), 2)
+
+
+def contour_manual(mosaic_name):
+    img = load_original(mosaic_name, dir="to_treat")
+    new_img = img.copy()
+    cv2.imshow("Picture to investigate", new_img)
+    cv2.setMouseCallback("Picture to investigate", log_coordinates)
+    cv2.imshow("Picture to investigate", new_img)
+    r = cv2.waitKey()
+    if r == ord("o"):  # o for OK - means we're done with the contouring
+        all_points = np.array(coords, dtype=int)
+        print(coords)
+        chunk_size = 4
+        if len(all_points) % chunk_size == 0:
+            contours = [all_points[i : i + chunk_size] for i in range(0, len(all_points), chunk_size)]
+            cv2.drawContours(img, contours, -1, (0, 255, 0), CONTOUR_SIZE)
+        else:
+            print("Manual contouring not done correctly : 4 corners per pictures are needed")
+            contours = []
+        cv2.destroyAllWindows()
+        cv2.waitKey(1)
+    elif r == 27 or r == 32:  # Escape or space - stopping program
+        cv2.destroyAllWindows()
+        cv2.waitKey(1)
+        print(f"Contouring not completed correctly for {mosaic_name}")
+        contours = []
+    return contours, img
 
 
 def find_black_edge(mosaic_name="mamie0022.jpg", color=(255, 255, 255)):
@@ -419,6 +447,9 @@ def valTrackbars():
 
 if __name__ == "__main__":
 
+    contours, img = contour_manual("mamie0289.jpg")
+    show("Contour done manually", img)
+
     # BELOW IS THE CODE TO DETERMINE THE AREA OF A CONTOUR POINTED WITH THE MOUSE
     # TO BETTER DEFINE THE MIN_AREA THRESHOLD
 
@@ -431,14 +462,6 @@ if __name__ == "__main__":
     # https://www.geeksforgeeks.org/displaying-the-coordinates-of-the-points-clicked-on-the-image-using-python-opencv/
     # file_name = "mamie0458.jpg"
 
-    file_name = "mamie0462.jpg"
-    img = load_original(file_name, dir="source")
-    cv2.imshow("Picture to investigate", img)
-    cv2.setMouseCallback("Picture to investigate", log_coordinates)
-    cv2.waitKey()
-    cv2.destroyAllWindows()
-    cv2.waitKey(1)
-
     # import numpy as np
     # import cv2
     # from utils import *
@@ -449,6 +472,7 @@ if __name__ == "__main__":
     # The list below is for "mamie0462.jpg" - Area = 2940480.5
     # list_points = [(1584,2192), (3035,2171), (3099,4189), (1662,4243)]
 
+    """
     list_points = [(1584, 2192), (3035, 2171), (3099, 4189), (1662, 4243)]
     contour = np.array(list_points, dtype=int)
     # Check that contour is correct
@@ -461,6 +485,7 @@ if __name__ == "__main__":
     print(contour_area)
     # Contour Area is below threshold for picture in
     contour_area < MIN_AREA_THRESHOLD
+    """
 
     """
     # Source : https://www.tutorialspoint.com/opencv-python-how-to-display-the-coordinates-of-points-clicked-on-an-image
