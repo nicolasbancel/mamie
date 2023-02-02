@@ -379,6 +379,19 @@ def draw_point(img, point: tuple, show_image=True, write=True):
     return copy
 
 
+def log_coordinates(event, x, y, flags, params):
+    coords = []
+    if event == cv2.EVENT_LBUTTONDOWN:
+        print(f"x : {x} - y : {y}")
+        print(f"({x},{y})")
+        print(f"Flags : {flags}")
+        print(f"Params : {params}")
+        coords.append((x, y))
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        cv2.putText(img, str(x) + "," + str(y), (x, y), font, 5, (255, 0, 0), 2)
+        cv2.imshow("Picture to investigate", img)
+
+
 def find_black_edge(mosaic_name="mamie0022.jpg", color=(255, 255, 255)):
     img = load_original(mosaic_name, dir="source")
     img_whiten_edges = img.copy()
@@ -405,6 +418,66 @@ def valTrackbars():
 
 
 if __name__ == "__main__":
+
+    # BELOW IS THE CODE TO DETERMINE THE AREA OF A CONTOUR POINTED WITH THE MOUSE
+    # TO BETTER DEFINE THE MIN_AREA THRESHOLD
+
+    # "mamie0450.jpg" fails on top left, top right, bottom left pictures
+    # "mamie0452.jpg" fails on all pictures
+    # "mamie0453.jpg" fails on all pictures
+    # "mamie0458.jpg" fails on all pictures
+    # "mamie0462.jpg" fails on all pictures - very little ones - check the one in the middle
+
+    # https://www.geeksforgeeks.org/displaying-the-coordinates-of-the-points-clicked-on-the-image-using-python-opencv/
+    # file_name = "mamie0458.jpg"
+
+    file_name = "mamie0462.jpg"
+    img = load_original(file_name, dir="source")
+    cv2.imshow("Picture to investigate", img)
+    cv2.setMouseCallback("Picture to investigate", log_coordinates)
+    cv2.waitKey()
+    cv2.destroyAllWindows()
+    cv2.waitKey(1)
+
+    # import numpy as np
+    # import cv2
+    # from utils import *
+
+    # The list below is for "mamie0458.jpg" - Area = 4901879.0
+    # list_points = [(1255, 165), (3770, 187), (3746, 2120), (1231, 2130)]
+
+    # The list below is for "mamie0462.jpg" - Area = 2940480.5
+    # list_points = [(1584,2192), (3035,2171), (3099,4189), (1662,4243)]
+
+    list_points = [(1584, 2192), (3035, 2171), (3099, 4189), (1662, 4243)]
+    contour = np.array(list_points, dtype=int)
+    # Check that contour is correct
+    # file_name = "mamie0458.jpg"
+    file_name = "mamie0462.jpg"
+    img_copy = load_original(file_name, dir="source")
+    cv2.drawContours(img_copy, [contour], -1, (0, 255, 0), CONTOUR_SIZE)
+    show("Test contour", img_copy)
+    contour_area = cv2.contourArea(contour)
+    print(contour_area)
+    # Contour Area is below threshold for picture in
+    contour_area < MIN_AREA_THRESHOLD
+
+    """
+    # Source : https://www.tutorialspoint.com/opencv-python-how-to-display-the-coordinates-of-points-clicked-on-an-image
+    while True:
+        cv2.imshow("Picture to investigate", img)
+        k = cv2.waitKey(1) & 0xFF
+        if k == 27:
+            break
+    cv2.destroyAllWindows()
+    cv2.waitKey(1)
+    # print(coords)
+    """
+
+    """
+    # BELOW IS THE CODE TO IDENTIFY THE LOCATION OF THE PROBLEMATIC BLACK EDGE
+    
+    
     # from utils import *
     mosaic_name = "mamie0193.jpg"
     color = (255, 255, 255)
@@ -432,4 +505,5 @@ if __name__ == "__main__":
         draw_point(img_whiten_edges_copy, point, show_image=True, write=False)
     draw_point(img_whiten_edges_copy, point, show_image=True, write=True)
 
+    """
     pass
