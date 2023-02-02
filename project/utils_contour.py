@@ -128,7 +128,7 @@ def fix_contours(mosaic, show_image=None):
             new_contours = [clean_contour]
         for cont in new_contours:
             contours_final.append(cont)
-            draw(final_image, cont, color_index)
+            draw(final_image, cont, color_index, show_points=True, show_index=False)
             color_index += 1
     mosaic.contours_final = contours_final
     mosaic.num_contours_final = len(contours_final)
