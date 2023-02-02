@@ -18,7 +18,9 @@ WHITE_TRIANGLE_LENGTH = 400
 
 # THRESH_MIN = 250 # TEST RUN #2
 
-THRESH_MIN = 245  # Is what most of my tests were run with
+# THRESH_MIN = 245  ## MOST OF RUNS RAN WITH THIS CONFIG
+
+THRESH_MIN = 252
 THESH_MAX = 255
 
 # PREVIOUS VALUES :
@@ -115,8 +117,20 @@ CONTOUR_PRECISION_PARAM = 0.01
 
 # List of colors : BGR
 # List of good colors to print contours with
-# Green, Red, Blue, Yellow, Cyan, Magenta
-COLOR_LIST = [(0, 255, 0), (0, 0, 255), (255, 0, 0), (0, 255, 255), (255, 255, 0), (255, 0, 255)]
+# Green, Red, Blue, Yellow, Cyan, Magenta, Lime, Navy, Orange, Brown, Purple
+COLOR_LIST = [
+    (0, 255, 0),
+    (0, 0, 255),
+    (255, 0, 0),
+    (0, 255, 255),
+    (255, 255, 0),
+    (255, 0, 255),
+    (60, 245, 210),
+    (128, 0, 0),
+    (48, 130, 245),
+    (40, 110, 170),
+    (180, 30, 145),
+]
 POINT_COLOR = (0, 0, 0)
 
 PROJECT_DIR = "/Users/nicolasbancel/git/perso/mamie/project/"
