@@ -55,3 +55,11 @@ Script which automatically crops and rotates pictures. There are 3 main "objects
   - [Step four](https://github.com/nicolasbancel/mamie/tree/main/data/mosaic/all_steps/04_mamie0009_03_warpaffine.jpeg) : using the metadata available for that rectangle, we rotate it with the warpAffine method.
   - [Step five](https://github.com/nicolasbancel/mamie/tree/main/data/mosaic/all_steps/04_mamie0009_03_rotated.jpeg) : rotation is done using the method explained above, in section **Project structure**
 
+## TO DO
+- _This To Do will obviously never be done_
+- Get rid of absolute paths in constant 
+- Document the manual processes
+  - Semi automatic cropping + rotation (pointing pixels by chunks of 4 pixels to log the corners of the pictures)
+    - `all_steps_manual()` and `all_steps_manual_multiple()` in `process_manual.py` : which does - once contour has been drawn by user, does the cropping + asks the user for the correct rotation
+    - `rotate_manual()` and `rotate_manual_multiple()` in `process_manual.py` : displays the pictures to the user, requests them to rotate the picture multiple times (pressing space) until the orientation is correct, press `o` to validate : it then writes the picture + logs the correct rotation in `rotation_metadata.csv`
+- Clean up objects methods vs functions that are using objects in different places + cleaner imports of objects
