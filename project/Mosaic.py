@@ -6,10 +6,10 @@ MOSAIC_METADATA = load_metadata(filename="pictures_per_mosaic.csv")
 
 
 class Mosaic:
-    def __init__(self, mosaic_name=None, cv2_array=None):
+    def __init__(self, dir, mosaic_name=None, cv2_array=None):
         self.mosaic_name = mosaic_name
         self.true_num_pictures = int(MOSAIC_METADATA[mosaic_name])
-        self.img = load_original(mosaic_name, dir="source")
+        self.img = load_original(mosaic_name, dir=dir)
         self.img_white_edges = self.whiten_edges()
         self.img_white_edgesxtriangle = self.whiten_triangle()
         self.img_white_borders = self.add_borders()

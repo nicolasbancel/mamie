@@ -1,5 +1,53 @@
 from Picture import *
+from Mosaic import *
+from crop import *
+from rotate import *
 import cv2
+
+
+def log_coordinates(event, x, y, flags, params):
+    global coords
+    if event == cv2.EVENT_LBUTTONDOWN:
+        print(f"x : {x} - y : {y}")
+        print(f"({x},{y})")
+        print(f"Flags : {flags}")
+        print(f"Params : {params}")
+        coords.append([x, y])
+        # font = cv2.FONT_HERSHEY_SIMPLEX
+        # cv2.putText(new_img, str(x) + "," + str(y), (x, y), font, 5, (255, 0, 0), 2)
+
+
+def contour_manual(mosaic):
+    img = mosaic.img
+    new_img = img.copy()
+    cv2.imshow("Picture to investigate", new_img)
+    cv2.setMouseCallback("Picture to investigate", log_coordinates)
+    cv2.imshow("Picture to investigate", new_img)
+    r = cv2.waitKey()
+    if r == ord("o"):  # o for OK - means we're done with the contouring
+        all_points = np.array(coords, dtype=int)
+        print(coords)
+        chunk_size = 4
+        if len(all_points) % chunk_size == 0:
+            contours = [all_points[i : i + chunk_size] for i in range(0, len(all_points), chunk_size)]
+            cv2.drawContours(img, contours, -1, (0, 255, 0), CONTOUR_SIZE)
+        else:
+            print("Manual contouring not done correctly : 4 corners per pictures are needed")
+            contours = []
+        cv2.destroyAllWindows()
+        cv2.waitKey(1)
+    elif r == 27 or r == 32:  # Escape or space - stopping program
+        cv2.destroyAllWindows()
+        cv2.waitKey(1)
+        print(f"Contouring not completed correctly for {mosaic_name}")
+        contours = []
+    mosaic.img_w_main_contours = img
+    mosaic.img_w_final_contours = img
+    mosaic.contours_main = contours
+    mosaic.contours_final = contours
+    mosaic.num_contours_final = len(contours)
+    mosaic.success = True
+    return contours, img
 
 
 def rotate_manual(picture, save_pic=None):
@@ -52,6 +100,17 @@ def rotate_manual(picture, save_pic=None):
             writer.writerow([picture.picture_name, picture_rotation])
 
 
+def all_manual(mosaic_name, export_cropped=None, export_rotated=None, show_cropping=None, show_rotation=None):
+    mosaic = Mosaic(dir="to_treat", mosaic_name=mosaic_name)
+    contours, img = contour_manual(mosaic)
+    crop_mosaic(mosaic, export_cropped=export_cropped, show_image=show_cropping)
+    for i in range(mosaic.num_contours_final):
+        picture_name = mosaic.cropped_pictures["filename"][i]
+        cv2_array = mosaic.cropped_pictures["img"][i]
+        picture = Picture(picture_name=picture_name, cv2_array=cv2_array)
+        rotate_manual(picture, save_pic=True)
+
+
 def rotate_manual_multiple(num_pictures: int = None, start_index=0, save_pic=None):
     """
     # Already done until 49. Will do 20 more
@@ -81,5 +140,7 @@ def rotate_manual_multiple(num_pictures: int = None, start_index=0, save_pic=Non
 
 
 if __name__ == "__main__":
+
+    # mosaic = Mosaic(dir="to_treat", "mamie0289.jpg")
 
     rotate_manual_multiple(num_pictures=50, start_index=124, save_pic=None)

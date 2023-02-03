@@ -381,45 +381,6 @@ def draw_point(img, point: tuple, show_image=True, write=True):
     return copy
 
 
-def log_coordinates(event, x, y, flags, params):
-    global coords
-    if event == cv2.EVENT_LBUTTONDOWN:
-        print(f"x : {x} - y : {y}")
-        print(f"({x},{y})")
-        print(f"Flags : {flags}")
-        print(f"Params : {params}")
-        coords.append([x, y])
-        # font = cv2.FONT_HERSHEY_SIMPLEX
-        # cv2.putText(new_img, str(x) + "," + str(y), (x, y), font, 5, (255, 0, 0), 2)
-
-
-def contour_manual(mosaic_name):
-    img = load_original(mosaic_name, dir="to_treat")
-    new_img = img.copy()
-    cv2.imshow("Picture to investigate", new_img)
-    cv2.setMouseCallback("Picture to investigate", log_coordinates)
-    cv2.imshow("Picture to investigate", new_img)
-    r = cv2.waitKey()
-    if r == ord("o"):  # o for OK - means we're done with the contouring
-        all_points = np.array(coords, dtype=int)
-        print(coords)
-        chunk_size = 4
-        if len(all_points) % chunk_size == 0:
-            contours = [all_points[i : i + chunk_size] for i in range(0, len(all_points), chunk_size)]
-            cv2.drawContours(img, contours, -1, (0, 255, 0), CONTOUR_SIZE)
-        else:
-            print("Manual contouring not done correctly : 4 corners per pictures are needed")
-            contours = []
-        cv2.destroyAllWindows()
-        cv2.waitKey(1)
-    elif r == 27 or r == 32:  # Escape or space - stopping program
-        cv2.destroyAllWindows()
-        cv2.waitKey(1)
-        print(f"Contouring not completed correctly for {mosaic_name}")
-        contours = []
-    return contours, img
-
-
 def find_black_edge(mosaic_name="mamie0022.jpg", color=(255, 255, 255)):
     img = load_original(mosaic_name, dir="source")
     img_whiten_edges = img.copy()
