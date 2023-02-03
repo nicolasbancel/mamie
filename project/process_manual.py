@@ -6,31 +6,34 @@ import cv2
 
 
 def log_coordinates(event, x, y, flags, params):
-    global coords
+    global COORDS
     if event == cv2.EVENT_LBUTTONDOWN:
         print(f"x : {x} - y : {y}")
         print(f"({x},{y})")
         print(f"Flags : {flags}")
         print(f"Params : {params}")
-        coords.append([x, y])
+        COORDS.append([x, y])
+        print(f"coords : {COORDS}")
         # font = cv2.FONT_HERSHEY_SIMPLEX
         # cv2.putText(new_img, str(x) + "," + str(y), (x, y), font, 5, (255, 0, 0), 2)
 
 
 def contour_manual(mosaic):
-    img = mosaic.img
+    global COORDS
+    img = mosaic.img_source
     new_img = img.copy()
+    # Initializing the COORDS variable once the mosaic is loaded
+    COORDS = []
     cv2.imshow("Picture to investigate", new_img)
     cv2.setMouseCallback("Picture to investigate", log_coordinates)
     cv2.imshow("Picture to investigate", new_img)
     r = cv2.waitKey()
     if r == ord("o"):  # o for OK - means we're done with the contouring
-        all_points = np.array(coords, dtype=int)
-        print(coords)
+        all_points = np.array(COORDS, dtype=int)
         chunk_size = 4
         if len(all_points) % chunk_size == 0:
             contours = [all_points[i : i + chunk_size] for i in range(0, len(all_points), chunk_size)]
-            cv2.drawContours(img, contours, -1, (0, 255, 0), CONTOUR_SIZE)
+            cv2.drawContours(new_img, contours, -1, (0, 255, 0), CONTOUR_SIZE)
         else:
             print("Manual contouring not done correctly : 4 corners per pictures are needed")
             contours = []
@@ -41,8 +44,9 @@ def contour_manual(mosaic):
         cv2.waitKey(1)
         print(f"Contouring not completed correctly for {mosaic_name}")
         contours = []
-    mosaic.img_w_main_contours = img
-    mosaic.img_w_final_contours = img
+    show(f"Mosaic {mosaic.mosaic_name} with all contours", new_img)
+    mosaic.img_w_main_contours = new_img
+    mosaic.img_w_final_contours = new_img
     mosaic.contours_main = contours
     mosaic.contours_final = contours
     mosaic.num_contours_final = len(contours)
@@ -100,8 +104,10 @@ def rotate_manual(picture, save_pic=None):
             writer.writerow([picture.picture_name, picture_rotation])
 
 
-def all_manual(mosaic_name, export_cropped=None, export_rotated=None, show_cropping=None, show_rotation=None):
+def all_steps_manual(mosaic_name, export_cropped=None, export_rotated=None, show_cropping=None):
     mosaic = Mosaic(dir="to_treat", mosaic_name=mosaic_name)
+    # coords = []
+    # print(f"coords : {coords}")
     contours, img = contour_manual(mosaic)
     crop_mosaic(mosaic, export_cropped=export_cropped, show_image=show_cropping)
     for i in range(mosaic.num_contours_final):
@@ -109,6 +115,18 @@ def all_manual(mosaic_name, export_cropped=None, export_rotated=None, show_cropp
         cv2_array = mosaic.cropped_pictures["img"][i]
         picture = Picture(picture_name=picture_name, cv2_array=cv2_array)
         rotate_manual(picture, save_pic=True)
+
+
+def all_steps_manual_multiple(num_pictures: int = None, start_index=0):
+    all_pictures = [file for file in sorted(os.listdir(TO_TREAT_DIR)) if (file.endswith(".jpg") or file.endswith(".png"))]
+    if num_pictures is not None:
+        final_index = len(all_pictures) - 1 if start_index + num_pictures > len(all_pictures) else start_index + num_pictures - 1
+        files_to_process = all_pictures[start_index:final_index]
+    else:
+        files_to_process = all_pictures[start_index:]
+    for filename in files_to_process:
+        print(f"Treating {filename}")
+        all_steps_manual(filename, export_cropped=True, export_rotated=True, show_cropping=True)
 
 
 def rotate_manual_multiple(num_pictures: int = None, start_index=0, save_pic=None):
@@ -141,6 +159,10 @@ def rotate_manual_multiple(num_pictures: int = None, start_index=0, save_pic=Non
 
 if __name__ == "__main__":
 
+    all_steps_manual_multiple(start_index=6)
     # mosaic = Mosaic(dir="to_treat", "mamie0289.jpg")
+    # coords = []
+    # print(f"coords : {coords}")
+    # all_steps_manual("mamie0289.jpg", export_cropped=True, export_rotated=True, show_cropping=True)
 
-    rotate_manual_multiple(num_pictures=50, start_index=124, save_pic=None)
+    # rotate_manual_multiple(num_pictures=50, start_index=124, save_pic=None)
