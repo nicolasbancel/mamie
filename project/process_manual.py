@@ -129,7 +129,7 @@ def all_steps_manual_multiple(num_pictures: int = None, start_index=0):
         all_steps_manual(filename, export_cropped=True, export_rotated=True, show_cropping=True)
 
 
-def rotate_manual_multiple(num_pictures: int = None, start_index=0, save_pic=None):
+def rotate_manual_multiple(num_pictures: int = None, start_index=0, dir=CROPPED_DIR, save_pic=None):
     """
     # Already done until 49. Will do 20 more
     # To know where to start : go to rotation_metadata.csv : row_number = 5 :
@@ -159,7 +159,11 @@ def rotate_manual_multiple(num_pictures: int = None, start_index=0, save_pic=Non
 
 if __name__ == "__main__":
 
-    all_steps_manual_multiple(start_index=6)
+    # all_steps_manual_multiple(start_index=6)
+
+    # Taking all pictures rotated automically, and reputting them in the right orientation (in the ROTATED_MANUAL directory)
+    rotate_manual_multiple(dir=ROTATED_AUTO_DIR, save_pic=True)
+
     # mosaic = Mosaic(dir="to_treat", "mamie0289.jpg")
     # coords = []
     # print(f"coords : {coords}")
