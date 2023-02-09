@@ -146,7 +146,7 @@ def rotate_manual_multiple(num_pictures: int = None, start_index=0, dir=CROPPED_
     # mamie0056_02.jpg at row = 125 in rotation_metadata.csv
     # Should start at index = 124
     """
-    all_pictures = [file for file in sorted(os.listdir(CROPPED_DIR)) if (file.endswith(".jpg") or file.endswith(".png"))]
+    all_pictures = [file for file in sorted(os.listdir(dir)) if (file.endswith(".jpg") or file.endswith(".png"))]
     if num_pictures is not None:
         final_index = len(all_pictures) - 1 if start_index + num_pictures > len(all_pictures) else start_index + num_pictures - 1
         files_to_process = all_pictures[start_index:final_index]
@@ -161,12 +161,19 @@ if __name__ == "__main__":
 
     # all_steps_manual_multiple(start_index=6)
 
+    # Do the cropping + the rotation of the all the files in the TO_TREAT_MANUALLY directory
+    # all_steps_manual_multiple()
+
     # Taking all pictures rotated automically, and reputting them in the right orientation (in the ROTATED_MANUAL directory)
-    rotate_manual_multiple(dir=ROTATED_AUTO_DIR, save_pic=True)
+    # rotate_manual_multiple(dir=ROTATED_AUTO_DIR, save_pic=True)
 
     # mosaic = Mosaic(dir="to_treat", "mamie0289.jpg")
     # coords = []
     # print(f"coords : {coords}")
     # all_steps_manual("mamie0289.jpg", export_cropped=True, export_rotated=True, show_cropping=True)
 
+    # Rotate manually some pictures, and save the picture or not
     # rotate_manual_multiple(num_pictures=50, start_index=124, save_pic=None)
+
+    # Rotate manually the pictures that have automatically been rotated, and save them (in the manual directory)
+    rotate_manual_multiple(dir=ROTATED_AUTO_DIR, save_pic=True)

@@ -24,7 +24,7 @@ EXECUTION_TIME = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
 def get_contours(mosaic_name, export_contoured: Literal["all", "fail_only", "none"] = None, show_image=None):
     MAPPING_DICT = load_metadata(filename="pictures_per_mosaic.csv")
-    mosaic = Mosaic(mosaic_name)
+    mosaic = Mosaic(dir="source", mosaic_name=mosaic_name)
     find_contours(mosaic, retrieval_mode=cv2.RETR_EXTERNAL)  # updates mosaic.contours_all
     message = draw_main_contours(mosaic, only_rectangles=False, show_image=show_image)  # Updates 4 attributes :
     # mosaic.contours_main / img_w_main_contours / num_contours_total / num_contours_main
@@ -233,3 +233,6 @@ if __name__ == "__main__":
     main(
         mosaic_list, num_mosaics, log_contouring, log_rotations, export_contoured, export_cropped, export_rotated, show_contouring, show_cropping, show_rotation
     )
+
+    # Fixing Pt 1 and 2 too close to each other
+    # python3 main.py -m "mamie0301.jpg" "mamie0302.jpg" "mamie0303.jpg" "mamie0304.jpg" "mamie0305.jpg" "mamie0306.jpg" --no-log_contouring --no-log_rotations -exco "all" -excr -exro --show_contouring --show_cropping --no-show_rotation
